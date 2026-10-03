@@ -3,8 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Inventaris — Adhiland Finance</title>
-<script>(function(){try{var t=localStorage.getItem('adh_theme');document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#F4F6FA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B1220" media="(prefers-color-scheme: dark)">
+<title>Inventaris — Adhiland ERP</title>
+<script>(function(){try{var t=localStorage.getItem('adh_theme');if(t!=='dark'&&t!=='light'){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
 <link rel="stylesheet" href="../assets/css/tokens.css">
 <link rel="stylesheet" href="../assets/css/app.css">
 </head>
@@ -12,6 +15,7 @@
 <div id="app"></div>
 <script src="../assets/js/fmt.js"></script>
 <script src="../assets/js/theme.js"></script>
+<script src="../assets/js/canonical-data.js"></script>
 <script src="../assets/js/data.js"></script>
 <script src="../assets/js/shell.js"></script>
 <script>
@@ -32,7 +36,7 @@ document.addEventListener('DOMContentLoaded', async function () {
   }).join('');
   var html = '';
   html += '<div class="global-bar"><span class="filter-label">Inventaris</span>';
-  html += '<div style="margin-left:auto" class="filter-group"><span class="text-muted" style="font-size:12px">Data seed dummy · CRUD defer</span></div></div>';
+  html += '<div class="filter-group ml-auto"><span class="text-muted fs-12">Data seed dummy · CRUD defer</span></div></div>';
   html += '<section class="kpi-grid">';
   html += '<article class="kpi-card"><div class="kpi-label">Total Nilai Aset</div><div class="kpi-value">'+F.IDR(totalNilai,'compact')+' (dummy)</div></article>';
   html += '<article class="kpi-card"><div class="kpi-label">Jumlah item</div><div class="kpi-value">'+items.length+'</div></article>';

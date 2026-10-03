@@ -1,5 +1,5 @@
 /**
- * Adhiland Finance — Dashboard Direktur (all 16 widgets)
+ * Adhiland ERP — Dashboard Direktur (all 16 widgets)
  * Spec: 04_SPEC_DASHBOARD_DIREKTUR.md
  */
 (function () {
@@ -10,6 +10,17 @@
   let charts = [];
   let viewPeriod = 12;
   let compareMode = 'period';
+  let viewportBound = false;
+
+  // T3-12: resize charts on orientation change / viewport resize (bound once)
+  function bindViewportOnce() {
+    if (viewportBound) return;
+    viewportBound = true;
+    function refresh() { requestAnimationFrame(function () { resizeCharts(); }); }
+    window.addEventListener('orientationchange', function () { setTimeout(refresh, 250); });
+    var rz;
+    window.addEventListener('resize', function () { clearTimeout(rz); rz = setTimeout(refresh, 150); });
+  }
 
   function ragClass(status) {
     if (status === 'good' || status === 'ok') return 'rag-good';
@@ -84,6 +95,18 @@
   }
 
   /* ========== W-DIR-02 KPI strip ========== */
+  /* Setiap kartu KPI mewakili kategori informasi yang berbeda, jadi tiap kartu
+     punya tipe detail + tabel sumbernya sendiri. Judul popup = label kartu. */
+  const KPI_DETAIL = {
+    '02a': 'kas_bank',
+    '02b': 'total_ppjb',
+    '02c': 'uang_masuk',
+    '02d': 'sisa_tagihan',
+    '02e': 'stok_belum',
+    '02f': 'hutang',
+    '02g': 'piutang_usaha',
+    '02h': 'serapan_anggaran'
+  };
   function renderKPI() {
     const kpis = [
       {
@@ -132,7 +155,7 @@
       <article class="kpi-card" id="w-dir-${k.id}" title="${k.tip || ''}">
         <div class="kpi-label">
           <span>${k.label}</span>
-          <span class="kpi-label-actions"><button class="status-badge ${ragClass(k.rag)} kpi-status-btn" type="button" data-detail="${k.id==='02a'?'saldo':k.id==='02b'?'penjualan_ppjb':k.id==='02c'?'penjualan_ppjb':k.id==='02d'?'piutang_ppjb':k.id==='02e'?'funnel':k.id==='02f'?'piutang_hutang':k.id==='02g'?'piutang_ppjb':'budget'}" aria-label="Status ${k.rag}, buka detail">${k.rag === 'bad' ? 'Kritis' : k.rag === 'warn' ? 'Waspada' : k.rag === 'good' ? 'Baik' : 'Info'}</button><button class="kpi-info-btn" type="button" data-detail="${k.id==='02a'?'saldo':k.id==='02b'?'penjualan_ppjb':k.id==='02c'?'penjualan_ppjb':k.id==='02d'?'piutang_ppjb':k.id==='02e'?'funnel':k.id==='02f'?'piutang_hutang':k.id==='02g'?'piutang_ppjb':'budget'}" aria-label="Lihat detail ${k.label}" title="Lihat detail">${window.AdhShell?AdhShell.icon('document',15):'▧'}</button></span>
+          <span class="kpi-label-actions"><button class="status-badge ${ragClass(k.rag)} kpi-status-btn" type="button" data-detail="${KPI_DETAIL[k.id]||'budget'}" data-detail-title="${k.label}" aria-label="Status ${k.rag}, buka detail">${k.rag === 'bad' ? 'Kritis' : k.rag === 'warn' ? 'Waspada' : k.rag === 'good' ? 'Baik' : 'Info'}</button><button class="kpi-info-btn" type="button" data-detail="${KPI_DETAIL[k.id]||'budget'}" data-detail-title="${k.label}" aria-label="Lihat detail ${k.label}" title="Lihat detail">${window.AdhShell?AdhShell.icon('document',15):'▧'}</button></span>
         </div>
         <div class="kpi-value">${k.value}</div>
         <div class="kpi-sub">${k.sub || ''}</div>
@@ -235,9 +258,9 @@
     <article class="card" id="w-dir-05">
       <div class="card-header">
         <h3 class="card-title">Penjualan vs Uang Masuk <span class="text-muted" style="font-weight:400;font-size:12px">(${scopeLabel()})</span></h3>
-        <div class="card-actions"><button class="btn btn-ghost btn-sm" type="button" data-detail="penjualan_ppjb">Detail</button></div>
+        <div class="card-actions"><button class="btn btn-ghost btn-sm" type="button" data-detail="penjualan_ppjb" data-detail-title="Penjualan vs Uang Masuk">Detail</button></div>
       </div>
-      <div class="chart-container"><canvas id="chart-sales-combo"></canvas></div>
+      <div class="chart-container"><canvas id="chart-sales-combo" role="img" aria-label="Grafik gabungan penjualan dan arus kas per bulan">Grafik penjualan vs arus kas. Data tersedia pada tabel detail.</canvas></div>
     </article>`;
   }
 
@@ -280,7 +303,7 @@
     <article class="card" id="w-dir-07">
       <div class="card-header">
         <h3 class="card-title">Kas menutup hanya ${F.pct(coverPct)} kebutuhan — runway ~${runwayDays} hari</h3>
-        <div class="card-actions"><button class="btn btn-ghost btn-sm" type="button" data-detail="saldo">Detail</button></div>
+        <div class="card-actions"><button class="btn btn-ghost btn-sm" type="button" data-detail="saldo" data-detail-title="Saldo Kas per Proyek">Detail</button></div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:12px">
         <div style="text-align:center;padding:16px;background:var(--danger-soft);border-radius:var(--radius);border:1px solid var(--border)">
@@ -299,7 +322,7 @@
           <div class="flex-between" style="border-top:1px solid var(--border);padding-top:8px"><span class="text-muted">Selisih</span><strong style="color:var(--danger)">${F.IDR(D.KAS.total - need, 'compact')}</strong></div>
         </div>
       </div>
-      <div class="chart-container sm"><canvas id="chart-cash-bridge"></canvas></div>
+      <div class="chart-container sm"><canvas id="chart-cash-bridge" role="img" aria-label="Grafik waterfall jembatan arus kas">Grafik jembatan arus kas. Data tersedia pada tabel detail.</canvas></div>
       <p class="text-muted mt-2" style="font-size:11px">Waterfall: Kas → −Pengajuan → −Jatuh tempo → Selisih. Runway memakai rata-rata outflow 90 hari terakhir dari kas_mutasi; benchmark historis, bukan forecast.</p>
     </article>`;
   }
@@ -312,7 +335,7 @@
         <h3 class="card-title">Kualitas kategori arus kas masuk <span class="text-muted" style="font-weight:400;font-size:12px">(derived account mapping · ${scopeLabel()})</span></h3>
         <div class="card-actions"><button class="btn btn-ghost btn-sm" type="button" data-detail="cash_quality">Detail</button></div>
       </div>
-      <div class="chart-container sm"><canvas id="chart-cash-quality"></canvas></div>
+      <div class="chart-container sm"><canvas id="chart-cash-quality" role="img" aria-label="Diagram donat kualitas arus kas masuk">Diagram kualitas arus kas masuk. Data tersedia pada tabel detail.</canvas></div>
     </article>`;
   }
 
@@ -326,7 +349,7 @@
         <h3 class="card-title">Serapan ${F.pct(serapan)} — konstruksi ${F.pct(konstruksiSerapan)}</h3>
         <div class="card-actions"><button class="btn btn-ghost btn-sm" type="button" data-detail="budget">Detail</button></div>
       </div>
-      <div class="chart-container"><canvas id="chart-budget-burn"></canvas></div>
+      <div class="chart-container"><canvas id="chart-budget-burn" role="img" aria-label="Grafik batang serapan anggaran per proyek">Grafik serapan anggaran. Data tersedia pada tabel detail.</canvas></div>
     </article>`;
   }
 
@@ -369,7 +392,7 @@
         <h3 class="card-title">Scatter: % bayar konsumen vs % progres (P0)</h3>
         <div class="card-actions"><button class="btn btn-ghost btn-sm" type="button" data-detail="project_matrix">Detail</button></div>
       </div>
-      <div class="chart-container sm"><canvas id="chart-pay-progress"></canvas></div>
+      <div class="chart-container sm"><canvas id="chart-pay-progress" role="img" aria-label="Diagram sebar pembayaran versus progres konstruksi">Diagram sebar pembayaran vs progres. Data tersedia pada tabel detail.</canvas></div>
       <p class="text-muted mt-2" style="font-size:11px">Kuadran kanan-bawah = sudah dibayar tapi progres macet · kiri-atas = progres jalan tapi tagihan belum masuk</p>
     </article>`;
   }
@@ -494,7 +517,14 @@
     charts.forEach(c => { try { c.destroy(); } catch(e){} });
     charts = [];
 
-    if (typeof Chart === 'undefined') return;
+    if (typeof Chart === 'undefined') {
+      document.querySelectorAll('.chart-container').forEach(function(box){
+        if(box.dataset.nochart==='1')return;
+        box.dataset.nochart='1';
+        box.innerHTML='<div class="empty-state"><span class="empty-title">Grafik tidak tersedia</span><span class="empty-sub">Library Chart.js gagal dimuat. Data tetap dapat dilihat pada tabel detail.</span></div>';
+      });
+      return;
+    }
 
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
     const gridColor = getComputedStyle(document.documentElement).getPropertyValue('--viz-grid').trim();
@@ -507,7 +537,7 @@
     // Sales combo
     const salesSeries = (D.MONTHLY||[]).slice(-viewPeriod);
     const ctx1 = document.getElementById('chart-sales-combo');
-    if (ctx1) {
+    if (ctx1 && ctx1.offsetParent) {
       charts.push(new Chart(ctx1, {
         type: 'bar',
         data: {
@@ -559,7 +589,7 @@
 
     // Cash bridge (waterfall-like bar)
     const ctx2 = document.getElementById('chart-cash-bridge');
-    if (ctx2) {
+    if (ctx2 && ctx2.offsetParent) {
       charts.push(new Chart(ctx2, {
         type: 'bar',
         data: {
@@ -589,7 +619,7 @@
 
     // Cash quality donut
     const ctx3 = document.getElementById('chart-cash-quality');
-    if (ctx3) {
+    if (ctx3 && ctx3.offsetParent) {
       charts.push(new Chart(ctx3, {
         type: 'doughnut',
         data: {
@@ -613,7 +643,7 @@
 
     // Budget burn — project-aware when a project is selected.
     const ctx4 = document.getElementById('chart-budget-burn');
-    if (ctx4) {
+    if (ctx4 && ctx4.offsetParent) {
       let budgetRows = [];
       const scopeProject = D.currentProjectId && D.currentProjectId() !== 'all' ? D.currentProjectId() : 'all';
       if(scopeProject !== 'all'){
@@ -649,7 +679,7 @@
 
     // P0 Scatter: % bayar (x) vs % progres (y) per proyek
     const ctx5 = document.getElementById('chart-pay-progress');
-    if (ctx5) {
+    if (ctx5 && ctx5.offsetParent) {
       const scatterPts = (D.PROJECT_HEALTH||[]).map(function(p){
         var rows=(D.CANONICAL&&D.CANONICAL.tables&&D.CANONICAL.tables.rekap_konstruksi||[]).filter(function(r){return r.Cluster===p.name;});
         var prog=rows.length?rows.reduce(function(a,r){return a+(Number(r['%'])||0);},0)/rows.length:0;
@@ -704,56 +734,75 @@
   }
 
   /* ========== Main render ========== */
+  let activeTab = 'overview';
+  const TABS = [['overview','Ringkasan'],['cash','Kas & Anggaran'],['risk','Risiko & Data']];
+
+  function renderTabs() {
+    return '<div class="tab-bar" role="tablist" aria-label="Bagian dashboard">' +
+      TABS.map(function (t) {
+        return '<button class="tab-btn' + (activeTab === t[0] ? ' active' : '') + '" type="button" role="tab" id="tab-' + t[0] + '" data-tab="' + t[0] + '" aria-selected="' + (activeTab === t[0] ? 'true' : 'false') + '" aria-controls="tabpanel-' + t[0] + '">' + t[1] + '</button>';
+      }).join('') + '</div>';
+  }
+  function tabPanel(id, html) {
+    return '<div class="tab-panel" role="tabpanel" id="tabpanel-' + id + '" aria-labelledby="tab-' + id + '"' + (activeTab === id ? '' : ' hidden') + '>' + html + '</div>';
+  }
+
   function render(root) {
     if (!root) return;
-    root.innerHTML = `
-      ${renderGlobalBar()}
-      ${renderDecisionCenter()}
-      ${renderKPI()}
-      <div class="zone zone-2-8-4">
-        ${renderProjectMatrix()}
-        ${renderFunnel()}
-      </div>
-      <div class="zone zone-2-8-4">
-        ${renderSalesCombo()}
-        ${renderCelah()}
-      </div>
-      <div class="zone zone-2-6-6">
-        ${renderCashBridge()}
-        ${renderCashQuality()}
-      </div>
-      <div class="zone zone-2-7-5">
-        ${renderBudgetBurn()}
-        ${renderDueItems()}
-      </div>
-      <div class="zone zone-3-4-4-4">
-        ${renderPayVsProgress()}
-        ${renderLateST()}
-        ${renderLegalHeat()}
-      </div>
-      <div class="zone zone-2-6-6">
-        ${renderAging('w-dir-14', 'Umur piutang', D.AR_AGING||[], 'var(--warning)')}
-        ${renderAging('w-dir-15', 'Umur hutang', D.AP_AGING||[], 'var(--danger)')}
-      </div>
-      <div class="zone zone-1">
-        ${renderActivityDQ()}
-      </div>
-    `;
+    bindViewportOnce();
+
+    const overviewPanel =
+      renderKPI() +
+      '<div class="zone zone-2-8-4">' + renderProjectMatrix() + renderFunnel() + '</div>' +
+      '<div class="zone zone-2-8-4">' + renderSalesCombo() + renderCelah() + '</div>';
+
+    const cashPanel =
+      '<div class="zone zone-2-6-6">' + renderCashBridge() + renderCashQuality() + '</div>' +
+      '<div class="zone zone-2-7-5">' + renderBudgetBurn() + renderDueItems() + '</div>';
+
+    const riskPanel =
+      '<div class="zone zone-3-4-4-4">' + renderPayVsProgress() + renderLateST() + renderLegalHeat() + '</div>' +
+      '<div class="zone zone-2-6-6">' +
+        renderAging('w-dir-14', 'Umur piutang', D.AR_AGING||[], 'var(--warning)') +
+        renderAging('w-dir-15', 'Umur hutang', D.AP_AGING||[], 'var(--danger)') +
+      '</div>' +
+      '<div class="zone zone-1">' + renderActivityDQ() + '</div>';
+
+    root.innerHTML =
+      renderGlobalBar() +
+      renderDecisionCenter() +
+      renderTabs() +
+      tabPanel('overview', overviewPanel) +
+      tabPanel('cash', cashPanel) +
+      tabPanel('risk', riskPanel);
 
     // Charts after DOM paint
     requestAnimationFrame(() => {
       initCharts();
     });
 
-    root.querySelectorAll('[data-detail]').forEach(function(btn){btn.addEventListener('click',function(){if(window.AdhShell&&AdhShell.openDetail)AdhShell.openDetail(btn.dataset.detail);});});
+    root.querySelectorAll('.tab-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        activeTab = btn.dataset.tab || 'overview';
+        render(root);
+      });
+    });
+    root.querySelectorAll('[data-detail]').forEach(function(btn){btn.addEventListener('click',function(){if(window.AdhShell&&AdhShell.openDetail)AdhShell.openDetail(btn.dataset.detail,{title:btn.dataset.detailTitle||undefined});});});
 
     var per=root.querySelector('#filter-periode');if(per)per.addEventListener('change',function(){viewPeriod=Number(per.value)||12;render(root);});
     var cmp=root.querySelector('#filter-pembanding');if(cmp)cmp.addEventListener('change',function(){compareMode=cmp.value||'period';render(root);});
 
     var ex=root.querySelector('[data-action="export-projects"]');if(ex)ex.addEventListener('click',function(){var rows=(D.CANONICAL&&D.CANONICAL.derived&&D.CANONICAL.derived.projectSummary)||[];if(window.AdhLocalState&&AdhLocalState.exportCsv)AdhLocalState.exportCsv('adhiland-project-summary.csv',rows,['name','kas','ppjb','masuk','sisa','rasio','n','belum']);else{var csv=['Project,Kas,PPJB,Uang Masuk,Piutang,Rasio,Terjual,Belum Terjual'].concat(rows.map(function(r){return [r.name,r.kas,r.ppjb,r.masuk,r.sisa,r.rasio,r.n,r.belum].map(function(v){return '"'+String(v==null?'':v).replace(/"/g,'""')+'"';}).join(',')})).join('\n');var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='adhiland-project-summary.csv';a.click();}});
-    // Re-init charts on theme change
+    // Re-init charts on theme change (fade swap, no harsh flash)
     window.addEventListener('themechange', () => {
-      requestAnimationFrame(initCharts);
+      const wraps = root.querySelectorAll('.chart-container');
+      wraps.forEach(function (c) { c.classList.add('chart-swapping'); });
+      requestAnimationFrame(function () {
+        initCharts();
+        setTimeout(function () {
+          wraps.forEach(function (c) { c.classList.remove('chart-swapping'); });
+        }, 80);
+      });
     });
 
     // Board Pack: use the browser's professional print flow; no duplicate mock alert.
@@ -764,5 +813,9 @@
     });
   }
 
-  window.AdhDashboard = { render };
+  function resizeCharts(){
+    charts.forEach(function(c){ try { c.resize(); } catch(e){} });
+  }
+
+  window.AdhDashboard = { render: render, resizeCharts: resizeCharts };
 })();

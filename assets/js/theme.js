@@ -1,5 +1,5 @@
 /**
- * Adhiland Finance — Theme manager
+ * Adhiland ERP — Theme manager
  * Spec: 03_SPEC_DESIGN_SYSTEM.md §3
  */
 (function () {
@@ -10,7 +10,10 @@
   function getTheme() {
     try {
       const t = localStorage.getItem(KEY);
-      return t === 'dark' ? 'dark' : 'light';
+      if (t === 'dark' || t === 'light') return t;
+      // T5-07: first visit — follow OS preference
+      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) return 'dark';
+      return 'light';
     } catch (e) {
       return 'light';
     }

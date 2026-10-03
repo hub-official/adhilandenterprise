@@ -3,10 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Kavling &amp; Penjualan — Adhiland Finance</title>
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#F4F6FA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B1220" media="(prefers-color-scheme: dark)">
+<title>Kavling &amp; Penjualan — Adhiland ERP</title>
 <script>
-(function(){try{var t=localStorage.getItem('adh_theme');
-document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}
+(function(){try{var t=localStorage.getItem('adh_theme');if(t!=='dark'&&t!=='light'){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}
 catch(e){document.documentElement.setAttribute('data-theme','light');}})();
 </script>
 <link rel="stylesheet" href="../assets/css/tokens.css">
@@ -16,6 +18,7 @@ catch(e){document.documentElement.setAttribute('data-theme','light');}})();
 <div id="app"></div>
 <script src="../assets/js/fmt.js"></script>
 <script src="../assets/js/theme.js"></script>
+<script src="../assets/js/canonical-data.js"></script>
 <script src="../assets/js/data.js"></script>
 <script src="../assets/js/shell.js"></script>
 <script src="../assets/js/kavling.js"></script>
@@ -41,14 +44,14 @@ document.addEventListener('DOMContentLoaded', async function () {
         <button class="chip ${currentFilter==='bertahap'?'active':''}" data-st="bertahap">Bertahap</button>
         <button class="chip ${currentFilter==='cash'?'active':''}" data-st="cash">Cash</button>
       </div>
-      <div class="filter-group" style="margin-left:auto">
+      <div class="filter-group ml-auto">
         <button class="btn btn-primary btn-sm">+ Tambah Kavling</button>
         <button class="btn btn-secondary btn-sm">Export</button>
       </div>
     </div>
     <section class="kpi-grid">
       <article class="kpi-card"><div class="kpi-label">Total Kavling</div><div class="kpi-value">${kpi.total}</div></article>
-      <article class="kpi-card"><div class="kpi-label">Terjual</div><div class="kpi-value">${kpi.terjual} <span class="text-muted" style="font-size:14px">(${kpi.pct.toFixed(1).replace('.',',')}%)</span></div></article>
+      <article class="kpi-card"><div class="kpi-label">Terjual</div><div class="kpi-value">${kpi.terjual} <span class="text-muted fs-14">(${kpi.pct.toFixed(1).replace('.',',')}%)</span></div></article>
       <article class="kpi-card"><div class="kpi-label">Nilai PPJB</div><div class="kpi-value">${F.IDR(D.SALES.ppjb,'compact')}</div></article>
       <article class="kpi-card"><div class="kpi-label">Sisa Tagihan PPJB</div><div class="kpi-value">${F.IDR(D.SALES.sisaTagihan,'compact')}</div></article>
     </section>
@@ -62,7 +65,7 @@ document.addEventListener('DOMContentLoaded', async function () {
           <tbody>${rows || '<tr><td colspan="9" class="text-muted">Memuat data…</td></tr>'}</tbody>
         </table>
       </div>
-      <p class="text-muted mt-2" style="font-size:12px">Menampilkan ${list.length} dari ${kpi.total} kavling · Sumber: kavling_master (extract 2026-10-02)</p>
+      <p class="source-note">Menampilkan ${list.length} dari ${kpi.total} kavling · Sumber: kavling_master (extract 2026-10-02)</p>
     </article>`;
     AdhShell.mount({ role: 'Legal', title: 'Kavling Legal', content: content });
     document.querySelectorAll('#status-filters .chip').forEach(function (btn) {

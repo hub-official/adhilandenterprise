@@ -3,8 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Laba Rugi — Adhiland Finance</title>
-<script>(function(){try{var t=localStorage.getItem('adh_theme');document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#F4F6FA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B1220" media="(prefers-color-scheme: dark)">
+<title>Laba Rugi — Adhiland ERP</title>
+<script>(function(){try{var t=localStorage.getItem('adh_theme');if(t!=='dark'&&t!=='light'){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
 <link rel="stylesheet" href="../assets/css/tokens.css">
 <link rel="stylesheet" href="../assets/css/app.css">
 </head>
@@ -12,6 +15,7 @@
 <div id="app"></div>
 <script src="../assets/js/fmt.js"></script>
 <script src="../assets/js/theme.js"></script>
+<script src="../assets/js/canonical-data.js"></script>
 <script src="../assets/js/data.js"></script>
 <script src="../assets/js/shell.js"></script>
 <script>
@@ -45,17 +49,17 @@ document.addEventListener('DOMContentLoaded', async function () {
   ];
 
   var rows = items.map(function (a) {
-    var style = a.group ? ' style="font-weight:600;background:var(--surface-2)"' : '';
-    if (a.highlight) style = ' style="font-weight:700;background:var(--primary-soft)"';
-    var tag = a.src === 'proxy' ? ' <span class="text-muted" style="font-size:10px">(proxy)</span>' :
-              a.src === 'info' ? ' <span class="text-muted" style="font-size:10px">(info)</span>' : '';
+    var style = a.group ? ' class="fw-600 bg-surface-2"' : '';
+    if (a.highlight) style = ' class="fw-700 bg-primary-soft"';
+    var tag = a.src === 'proxy' ? ' <span class="text-muted fs-10">(proxy)</span>' :
+              a.src === 'info' ? ' <span class="text-muted fs-10">(info)</span>' : '';
     return '<tr' + style + '><td>' + a.kode + '</td><td>' + a.nama + tag + '</td><td class="num">' + F.IDR(a.saldo, 'compact') + '</td></tr>';
   }).join('');
 
   var html =
     '<div class="global-bar">' +
       '<span class="filter-label">Laba Rugi ringkas (proxy snapshot)</span>' +
-      '<span class="text-muted" style="font-size:12px;margin-left:auto">Per ' + F.dateTime(D.AS_OF) + '</span>' +
+      '<span class="text-muted fs-12 ml-auto">Per ' + F.dateTime(D.AS_OF) + '</span>' +
     '</div>' +
     '<section class="kpi-grid">' +
       '<article class="kpi-card"><div class="kpi-label">Pendapatan (uang masuk)</div><div class="kpi-value">' + F.IDR(pendapatan, 'compact') + '</div><div class="kpi-sub">Snapshot SALES</div></article>' +
@@ -67,7 +71,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     '</section>' +
     '<article class="card"><div class="card-header"><h3 class="card-title">Laporan ringkas berbasis snapshot</h3></div>' +
       '<div class="table-wrap"><table class="data-table"><thead><tr><th>Kode</th><th>Nama</th><th class="num">Saldo</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
-      '<p class="text-muted mt-2" style="font-size:12px">Bukan full accrual P&amp;L. Beban gaji/utilitas/marketing dummy dihapus. Hanya angka yang dapat ditelusuri ke aggregate.json (uang masuk, realisasi konstruksi, budget ops).</p></article>';
+      '<p class="text-muted mt-2 fs-12">Bukan full accrual P&amp;L. Beban gaji/utilitas/marketing dummy dihapus. Hanya angka yang dapat ditelusuri ke aggregate.json (uang masuk, realisasi konstruksi, budget ops).</p></article>';
 
   AdhShell.mount({ role: 'Direktur', title: 'Laba Rugi', content: html });
 });

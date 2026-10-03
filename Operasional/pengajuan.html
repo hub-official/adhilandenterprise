@@ -3,10 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Pengajuan Operasional — Adhiland Finance</title>
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#F4F6FA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B1220" media="(prefers-color-scheme: dark)">
+<title>Pengajuan Operasional — Adhiland ERP</title>
 <script>
-(function(){try{var t=localStorage.getItem('adh_theme');
-document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}
+(function(){try{var t=localStorage.getItem('adh_theme');if(t!=='dark'&&t!=='light'){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}
 catch(e){document.documentElement.setAttribute('data-theme','light');}})();
 </script>
 <link rel="stylesheet" href="../assets/css/tokens.css">
@@ -17,6 +19,7 @@ catch(e){document.documentElement.setAttribute('data-theme','light');}})();
 <script src="../assets/js/fmt.js"></script>
 <script src="../assets/js/theme.js"></script>
 <script src="../assets/js/local-state.js"></script>
+<script src="../assets/js/canonical-data.js"></script>
 <script src="../assets/js/data.js"></script>
 <script src="../assets/js/shell.js"></script>
 <script>
@@ -54,28 +57,42 @@ document.addEventListener('DOMContentLoaded', async function () {
     return projects || '<option value="">—</option>';
   }
 
+  function buildCreateForm() {
+    return '<div class="grid gap-12">' +
+      '<div><label class="form-label" for="cf-jenis">Jenis</label>' +
+        '<select id="cf-jenis" class="form-input">' +
+          '<option value="Anggaran">Anggaran</option>' +
+          '<option value="Reimbursement">Reimbursement</option>' +
+          '<option value="Lainnya">Lainnya</option>' +
+        '</select></div>' +
+      '<div><label class="form-label" for="cf-proyek">Proyek / cluster</label>' +
+        '<select id="cf-proyek" class="form-input" aria-required="true">' +
+          '<option value="">— pilih —</option>' + projectOptions() +
+        '</select></div>' +
+      '<div><label class="form-label" for="cf-jumlah">Jumlah (Rp)</label>' +
+        '<input id="cf-jumlah" class="form-input" type="number" inputmode="numeric" aria-required="true" min="1" step="1000" placeholder="mis. 5000000"></div>' +
+      '<div><label class="form-label" for="cf-keperluan">Keperluan</label>' +
+        '<textarea id="cf-keperluan" class="form-input textarea-auto" aria-required="true" rows="3"  placeholder="Uraian singkat keperluan"></textarea></div>' +
+      '<div><label class="form-label" for="cf-rekening">Rekening <span class="text-muted">(opsional)</span></label>' +
+        '<input id="cf-rekening" class="form-input" type="text" placeholder="Bank — no. rekening / atas nama"></div>' +
+    '</div>';
+  }
+
   function openCreateDrawer() {
-    const overlay = document.getElementById('create-overlay');
-    if (!overlay) return;
-    ['cf-jenis','cf-proyek','cf-jumlah','cf-keperluan','cf-rekening'].forEach(function (id) {
-      const el = document.getElementById(id);
-      if (!el) return;
-      if (el.tagName === 'SELECT') el.selectedIndex = 0;
-      else el.value = '';
+    var d = AdhShell.openDrawer({
+      id: 'create-drawer',
+      title: 'Ajukan budget',
+      body: '<p class="text-muted note-sm">Satu langkah · sumberRole = ' + ROLE + ' · status awal Menunggu</p>' + buildCreateForm(),
+      footer: '<button class="btn btn-ghost" data-drawer-close type="button">Batal</button>' +
+              '<button class="btn btn-primary" id="create-submit" type="button">Ajukan</button>'
     });
-    overlay.style.display = 'flex';
-    setTimeout(function () {
-      const j = document.getElementById('cf-jumlah');
-      if (j) j.focus();
-    }, 50);
+    var j = d.el.querySelector('#cf-jumlah');
+    if (j) setTimeout(function () { j.focus(); }, 60);
+    var submit = d.el.querySelector('#create-submit');
+    if (submit) submit.addEventListener('click', function () { submitCreate(d); });
   }
 
-  function closeCreateDrawer() {
-    const overlay = document.getElementById('create-overlay');
-    if (overlay) overlay.style.display = 'none';
-  }
-
-  function submitCreate() {
+  function submitCreate(d) {
     const jenis = (document.getElementById('cf-jenis') || {}).value || 'Anggaran';
     const proyekSel = document.getElementById('cf-proyek');
     const proyek = (proyekSel && proyekSel.value) || '';
@@ -86,12 +103,16 @@ document.addEventListener('DOMContentLoaded', async function () {
     const keperluan = ((document.getElementById('cf-keperluan') || {}).value || '').trim();
     const rekening = ((document.getElementById('cf-rekening') || {}).value || '').trim();
 
+    [proyekSel, document.getElementById('cf-jumlah'), document.getElementById('cf-keperluan')].forEach(function (el) { if (el) el.removeAttribute('aria-invalid'); });
     if (!proyek) {
       LS.showToast('Proyek/cluster wajib dipilih', 'warn');
+      if (proyekSel) { proyekSel.setAttribute('aria-invalid', 'true'); proyekSel.focus(); }
       return;
     }
     if (!jumlah || jumlah <= 0) {
       LS.showToast('Jumlah wajib diisi (> 0)', 'warn');
+      var jEl = document.getElementById('cf-jumlah');
+      if (jEl) { jEl.setAttribute('aria-invalid', 'true'); jEl.focus(); }
       return;
     }
     if (!keperluan) {
@@ -110,7 +131,7 @@ document.addEventListener('DOMContentLoaded', async function () {
       pemohon: 'User Mock ' + ROLE
     }, ROLE);
 
-    closeCreateDrawer();
+    if (d) d.close();
     LS.showToast('Diajukan (mock lokal): ' + row.id, 'info');
     statusFilter = 'menunggu review';
     render();
@@ -129,10 +150,10 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     const rows = list.map(function (p) {
       const mockTag = (hasOverride(p.id) || p._mockCreated)
-        ? ' <span class="text-muted" style="font-size:10px">(mock lokal)</span>' : '';
+        ? ' <span class="text-muted fs-10">(mock lokal)</span>' : '';
       const alasan = getAlasan(p.id) || p.alasan;
       const alasanCell = alasan
-        ? '<span class="text-muted" style="font-size:11px" title="' + String(alasan).replace(/"/g, '&quot;') + '">' +
+        ? '<span class="text-muted fs-11"  title="' + String(alasan).replace(/"/g, '&quot;') + '">' +
             (String(alasan).length > 40 ? String(alasan).slice(0, 40) + '…' : String(alasan)) + '</span>'
         : '<span class="text-muted">—</span>';
       return '<tr>' +
@@ -159,12 +180,12 @@ document.addEventListener('DOMContentLoaded', async function () {
         '<button class="chip ' + (statusFilter==='dibayar'?'active':'') + '" data-st="dibayar">Dibayar</button>' +
         '<button class="chip ' + (statusFilter==='ditolak'?'active':'') + '" data-st="ditolak">Ditolak</button>' +
       '</div>' +
-      '<div class="filter-group" style="margin-left:auto">' +
+      '<div class="filter-group ml-auto">' +
         '<button class="btn btn-primary btn-sm" id="btn-ajukan">+ Ajukan</button>' +
       '</div>' +
     '</div>' +
-    '<p class="text-muted" style="font-size:12px;margin:0 0 12px">Alur: Ajukan → Review Finance → Direktur. Unit hanya mengajukan &amp; melihat status (termasuk Dikembalikan).</p>' +
-    '<section class="kpi-grid" style="grid-template-columns:repeat(2,1fr)">' +
+    '<p class="text-muted note-md">Alur: Ajukan → Review Finance → Direktur. Unit hanya mengajukan &amp; melihat status (termasuk Dikembalikan).</p>' +
+    '<section class="kpi-grid cols-2">' +
       '<article class="kpi-card">' +
         '<div class="kpi-label">Menunggu (' + ROLE + ')</div>' +
         '<div class="kpi-value">' + nMenunggu + '</div>' +
@@ -181,37 +202,9 @@ document.addEventListener('DOMContentLoaded', async function () {
         '<thead><tr><th>ID</th><th>Proyek</th><th>Jenis</th><th class="num">Nilai</th><th>Umur</th><th>Status</th><th>Pemohon</th><th>Alasan tolak</th></tr></thead>' +
         '<tbody>' + (rows || '<tr><td colspan="8" class="text-muted">Tidak ada data — klik + Ajukan untuk membuat</td></tr>') + '</tbody>' +
       '</table></div>' +
-      '<p class="text-muted mt-2" style="font-size:12px">' + list.length + ' baris · filter sumberRole=' + ROLE + ' · tanpa aksi approve/reject</p>' +
+      '<p class="text-muted mt-2 fs-12">' + list.length + ' baris · filter sumberRole=' + ROLE + ' · tanpa aksi approve/reject</p>' +
     '</article>' +
-    // Create drawer
-    '<div id="create-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:center;justify-content:center">' +
-      '<div class="card" style="width:min(460px,94vw);padding:20px;margin:16px;max-height:90vh;overflow:auto">' +
-        '<h3 style="margin:0 0 8px;font-size:16px">Ajukan budget</h3>' +
-        '<p class="text-muted" style="font-size:12px;margin:0 0 14px">Satu langkah · sumberRole = ' + ROLE + ' · status awal Menunggu</p>' +
-        '<div style="display:grid;gap:10px">' +
-          '<div><label style="display:block;font-size:12px;margin-bottom:4px">Jenis</label>' +
-            '<select id="cf-jenis" style="width:100%;padding:8px;border-radius:6px;border:1px solid var(--border,#ccc);font:inherit">' +
-              '<option value="Anggaran">Anggaran</option>' +
-              '<option value="Reimbursement">Reimbursement</option>' +
-              '<option value="Lainnya">Lainnya</option>' +
-            '</select></div>' +
-          '<div><label style="display:block;font-size:12px;margin-bottom:4px">Proyek / cluster</label>' +
-            '<select id="cf-proyek" style="width:100%;padding:8px;border-radius:6px;border:1px solid var(--border,#ccc);font:inherit">' +
-              '<option value="">— pilih —</option>' + projectOptions() +
-            '</select></div>' +
-          '<div><label style="display:block;font-size:12px;margin-bottom:4px">Jumlah (Rp)</label>' +
-            '<input id="cf-jumlah" type="number" min="1" step="1000" placeholder="mis. 5000000" style="width:100%;box-sizing:border-box;padding:8px;border-radius:6px;border:1px solid var(--border,#ccc);font:inherit"></div>' +
-          '<div><label style="display:block;font-size:12px;margin-bottom:4px">Keperluan</label>' +
-            '<textarea id="cf-keperluan" rows="3" placeholder="Uraian singkat keperluan" style="width:100%;box-sizing:border-box;padding:8px;border-radius:6px;border:1px solid var(--border,#ccc);font:inherit"></textarea></div>' +
-          '<div><label style="display:block;font-size:12px;margin-bottom:4px">Rekening <span class="text-muted">(opsional)</span></label>' +
-            '<input id="cf-rekening" type="text" placeholder="Bank — no. rekening / atas nama" style="width:100%;box-sizing:border-box;padding:8px;border-radius:6px;border:1px solid var(--border,#ccc);font:inherit"></div>' +
-        '</div>' +
-        '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">' +
-          '<button class="btn btn-ghost btn-sm" id="create-cancel">Batal</button>' +
-          '<button class="btn btn-primary btn-sm" id="create-submit">Ajukan</button>' +
-        '</div>' +
-      '</div>' +
-    '</div>';
+    '';
 
     AdhShell.mount({ role: ROLE, title: 'Pengajuan ' + ROLE, content: content });
 
@@ -219,11 +212,6 @@ document.addEventListener('DOMContentLoaded', async function () {
       btn.addEventListener('click', function () { statusFilter = btn.dataset.st; render(); });
     });
     document.getElementById('btn-ajukan') && document.getElementById('btn-ajukan').addEventListener('click', openCreateDrawer);
-    document.getElementById('create-cancel') && document.getElementById('create-cancel').addEventListener('click', closeCreateDrawer);
-    document.getElementById('create-submit') && document.getElementById('create-submit').addEventListener('click', submitCreate);
-    document.getElementById('create-overlay') && document.getElementById('create-overlay').addEventListener('click', function (e) {
-      if (e.target === e.currentTarget) closeCreateDrawer();
-    });
   }
   render();
 });

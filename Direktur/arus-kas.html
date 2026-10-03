@@ -3,8 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Arus Kas — Adhiland Finance</title>
-<script>(function(){try{var t=localStorage.getItem('adh_theme');document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#F4F6FA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B1220" media="(prefers-color-scheme: dark)">
+<title>Arus Kas — Adhiland ERP</title>
+<script>(function(){try{var t=localStorage.getItem('adh_theme');if(t!=='dark'&&t!=='light'){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
 <link rel="stylesheet" href="../assets/css/tokens.css">
 <link rel="stylesheet" href="../assets/css/app.css">
 </head>
@@ -12,20 +15,19 @@
 <div id="app"></div>
 <script src="../assets/js/fmt.js"></script>
 <script src="../assets/js/theme.js"></script>
+<script src="../assets/js/canonical-data.js"></script>
 <script src="../assets/js/data.js"></script>
 <script src="../assets/js/shell.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', async function () {
   const F = fmt;
   await AdhData.load();
-  let page = 1;
-  const size = 50;
   const report = await AdhData.loadReport('kas_mutasi');
   const allRows = report.rows || [];
+  let debit = 0, kredit = 0;
+  allRows.forEach(function (r) { debit += Number(r.debit || 0); kredit += Number(r.kredit || 0); });
 
-  function render() {
-    const pg = AdhData.paginate(allRows, page, size);
-    const rows = pg.rows.map(r => `<tr>
+  const rows = allRows.map(r => `<tr>
       <td>${r.perusahaan||'—'}</td>
       <td>${r.tipe||'—'}</td>
       <td>${r.tanggal||'—'}</td>
@@ -35,34 +37,26 @@ document.addEventListener('DOMContentLoaded', async function () {
       <td class="num">${F.IDR(r.kredit,'compact')}</td>
       <td class="num">${F.IDR(r.saldo,'compact')}</td>
     </tr>`).join('');
-    const content = `
+
+  const content = `
     <div class="global-bar">
       <span class="filter-label">Mutasi kas</span>
-      <span class="text-muted" style="font-size:12px;margin-left:auto">Kas total ${F.IDR(AdhData.KAS.total,'compact')}</span>
+      <span class="text-muted fs-12 ml-auto">Kas total ${F.IDR(AdhData.KAS.total,'compact')}</span>
     </div>
-    <section class="kpi-grid" style="grid-template-columns:repeat(3,1fr)">
-      <article class="kpi-card"><div class="kpi-label">Total mutasi</div><div class="kpi-value">${(report.total||allRows.length).toLocaleString('id-ID')}</div></article>
+    <section class="kpi-grid">
+      <article class="kpi-card"><div class="kpi-label">Total mutasi</div><div class="kpi-value">${(report.total||allRows.length).toLocaleString('id-ID')}</div><div class="kpi-sub">baris transaksi</div></article>
+      <article class="kpi-card"><div class="kpi-label">Total debit</div><div class="kpi-value">${F.IDR(debit,'compact')}</div></article>
+      <article class="kpi-card"><div class="kpi-label">Total kredit</div><div class="kpi-value">${F.IDR(kredit,'compact')}</div></article>
       <article class="kpi-card"><div class="kpi-label">Kas &amp; Bank</div><div class="kpi-value">${F.IDR(AdhData.KAS.total,'compact')}</div></article>
-      <article class="kpi-card"><div class="kpi-label">Halaman</div><div class="kpi-value">${pg.page} / ${pg.pages}</div></article>
     </section>
     <article class="card">
       <div class="table-wrap"><table class="data-table">
         <thead><tr><th>Proyek</th><th>Tipe</th><th>Tanggal</th><th>Ref</th><th>Uraian</th><th class="num">Debit</th><th class="num">Kredit</th><th class="num">Saldo</th></tr></thead>
         <tbody>${rows}</tbody>
       </table></div>
-      <div class="flex-between mt-3">
-        <p class="text-muted" style="font-size:12px">Sumber: kas_mutasi.csv</p>
-        <div class="flex gap-2">
-          <button class="btn btn-secondary btn-sm" id="prev-page" ${page<=1?'disabled':''}>← Prev</button>
-          <button class="btn btn-secondary btn-sm" id="next-page" ${page>=pg.pages?'disabled':''}>Next →</button>
-        </div>
-      </div>
+      <p class="source-note">Sumber: kas_mutasi.csv · pencarian, urut kolom, dan halaman dikelola toolbar tabel di atas.</p>
     </article>`;
-    AdhShell.mount({ role: 'Direktur', title: 'Arus Kas', content: content });
-    document.getElementById('prev-page')?.addEventListener('click', () => { page--; render(); });
-    document.getElementById('next-page')?.addEventListener('click', () => { page++; render(); });
-  }
-  render();
+  AdhShell.mount({ role: 'Direktur', title: 'Arus Kas', content: content });
 });
 </script>
 </body>

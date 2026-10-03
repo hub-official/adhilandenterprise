@@ -3,8 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Piutang &amp; Hutang — Adhiland Finance</title>
-<script>(function(){try{var t=localStorage.getItem('adh_theme');document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#F4F6FA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B1220" media="(prefers-color-scheme: dark)">
+<title>Piutang &amp; Hutang — Adhiland ERP</title>
+<script>(function(){try{var t=localStorage.getItem('adh_theme');if(t!=='dark'&&t!=='light'){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
 <link rel="stylesheet" href="../assets/css/tokens.css">
 <link rel="stylesheet" href="../assets/css/app.css">
 </head>
@@ -12,6 +15,7 @@
 <div id="app"></div>
 <script src="../assets/js/fmt.js"></script>
 <script src="../assets/js/theme.js"></script>
+<script src="../assets/js/canonical-data.js"></script>
 <script src="../assets/js/data.js"></script>
 <script src="../assets/js/shell.js"></script>
 <script>
@@ -25,7 +29,7 @@ document.addEventListener('DOMContentLoaded', async function () {
   }
   var html =
     '<div class="global-bar"><span class="filter-label">Piutang &amp; Hutang</span>' +
-    '<span class="text-muted" style="font-size:12px;margin-left:auto">Per ' + F.dateTime(D.AS_OF) + '</span></div>' +
+    '<span class="text-muted fs-12 ml-auto">Per ' + F.dateTime(D.AS_OF) + '</span></div>' +
     '<section class="kpi-grid">' +
       '<article class="kpi-card"><div class="kpi-label">Piutang Usaha</div><div class="kpi-value">' + F.IDR(D.LIABILITAS.piutangUsaha, 'compact') + '</div><div class="kpi-sub">Snapshot jurnal</div></article>' +
       '<article class="kpi-card"><div class="kpi-label">Sisa Tagihan PPJB</div><div class="kpi-value">' + F.IDR(D.SALES.sisaTagihan, 'compact') + '</div><div class="kpi-sub">Konsumen</div></article>' +
@@ -33,12 +37,12 @@ document.addEventListener('DOMContentLoaded', async function () {
       '<article class="kpi-card"><div class="kpi-label">Kas / Hutang</div><div class="kpi-value">' + F.pct(D.KAS.total / D.LIABILITAS.hutang) + '</div></article>' +
     '</section>' +
     '<div class="zone zone-2-6-6">' +
-      '<article class="card"><div class="card-header"><h3 class="card-title">Umur piutang <span class="text-muted" style="font-weight:400;font-size:12px">(indikatif)</span></h3></div>' +
+      '<article class="card"><div class="card-header"><h3 class="card-title">Umur piutang <span class="text-muted fw-400 fs-12">(indikatif)</span></h3></div>' +
         '<div class="table-wrap"><table class="data-table"><thead><tr><th>Bucket</th><th class="num">Nilai</th><th class="num">N</th></tr></thead><tbody>' + agingTable(D.AR_AGING) + '</tbody></table></div>' +
-        '<p class="text-muted mt-2" style="font-size:12px">KPI piutang dari snapshot. Aging bucket indikatif (bukan extract aging penuh).</p></article>' +
-      '<article class="card"><div class="card-header"><h3 class="card-title">Umur hutang <span class="text-muted" style="font-weight:400;font-size:12px">(indikatif)</span></h3></div>' +
+        '<p class="text-muted mt-2 fs-12">KPI piutang dari snapshot. Aging bucket indikatif (bukan extract aging penuh).</p></article>' +
+      '<article class="card"><div class="card-header"><h3 class="card-title">Umur hutang <span class="text-muted fw-400 fs-12">(indikatif)</span></h3></div>' +
         '<div class="table-wrap"><table class="data-table"><thead><tr><th>Bucket</th><th class="num">Nilai</th><th class="num">N</th></tr></thead><tbody>' + agingTable(D.AP_AGING) + '</tbody></table></div>' +
-        '<p class="text-muted mt-2" style="font-size:12px">Total hutang snapshot. Aging indikatif.</p></article>' +
+        '<p class="text-muted mt-2 fs-12">Total hutang snapshot. Aging indikatif.</p></article>' +
     '</div>';
   AdhShell.mount({ role: 'Direktur', title: 'Piutang & Hutang', content: html });
 });

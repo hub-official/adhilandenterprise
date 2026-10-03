@@ -3,8 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Progres Konstruksi — Adhiland Finance</title>
-<script>(function(){try{var t=localStorage.getItem('adh_theme');document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#F4F6FA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B1220" media="(prefers-color-scheme: dark)">
+<title>Progres Konstruksi — Adhiland ERP</title>
+<script>(function(){try{var t=localStorage.getItem('adh_theme');if(t!=='dark'&&t!=='light'){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
 <link rel="stylesheet" href="../assets/css/tokens.css">
 <link rel="stylesheet" href="../assets/css/app.css">
 </head>
@@ -14,6 +17,7 @@
 <script src="../assets/js/fmt.js"></script>
 <script src="../assets/js/theme.js"></script>
 <script src="../assets/js/local-state.js"></script>
+<script src="../assets/js/canonical-data.js"></script>
 <script src="../assets/js/data.js"></script>
 <script src="../assets/js/shell.js"></script>
 <script>
@@ -42,11 +46,11 @@ document.addEventListener('DOMContentLoaded', async function () {
             '<button class="btn btn-ghost btn-sm" type="button" id="pr-close">✕</button>' +
           '</div>' +
           '<div class="drawer-body">' +
-            '<p style="font-size:13px;margin-bottom:12px"><strong>' + (k.kavling || k.code) + '</strong> · ' + (k.proyek || '') + '</p>' +
-            '<p class="text-muted" style="font-size:12px">Kontraktor: ' + (k.kontraktor || '—') + ' · Data asli: ' + (Number(k.progresBangun)||0) + '%</p>' +
+            '<p class="fs-13 mb-12"><strong>' + (k.kavling || k.code) + '</strong> · ' + (k.proyek || '') + '</p>' +
+            '<p class="text-muted fs-12">Kontraktor: ' + (k.kontraktor || '—') + ' · Data asli: ' + (Number(k.progresBangun)||0) + '%</p>' +
             '<label class="form-label" for="pr-pct">Persen progres (0–100)</label>' +
-            '<input class="form-input" id="pr-pct" type="number" min="0" max="100" step="1" value="' + pct + '" style="max-width:120px">' +
-            '<p class="text-muted mt-4" style="font-size:11px">Disimpan di sessionStorage (mock lokal).</p>' +
+            '<input class="form-input maxw-120" id="pr-pct" type="number" min="0" max="100" step="1" value="' + pct + '">' +
+            '<p class="text-muted mt-4 fs-11">Disimpan di sessionStorage (mock lokal).</p>' +
           '</div>' +
           '<div class="drawer-footer">' +
             '<button class="btn btn-ghost" type="button" id="pr-cancel">Batal</button>' +
@@ -88,7 +92,7 @@ document.addEventListener('DOMContentLoaded', async function () {
       }
       var stLabel = telat ? 'Terlambat' : progres >= 100 ? 'Selesai' : progres > 80 ? 'Hampir selesai' : 'On progress';
       var stCls = telat ? 'rag-bad' : progres >= 100 || progres > 80 ? 'rag-good' : 'rag-info';
-      var mock = LS.getProgres(k.id) != null ? ' <span class="text-muted" style="font-size:10px">(mock lokal)</span>' : '';
+      var mock = LS.getProgres(k.id) != null ? ' <span class="text-muted fs-10">(mock lokal)</span>' : '';
       return '<tr>' +
         '<td><strong><a href="detail.html?id=' + k.id + '">' + (k.kavling || k.code || '#' + k.id) + '</a></strong></td>' +
         '<td>' + (k.proyek || '—') + '</td>' +
@@ -102,7 +106,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     var html =
       '<div class="global-bar"><span class="filter-label">Progres Konstruksi</span>' +
-      '<span class="text-muted" style="font-size:12px;margin-left:auto">Update % = mock lokal (sessionStorage)</span></div>' +
+      '<span class="text-muted fs-12 ml-auto">Update % = mock lokal (sessionStorage)</span></div>' +
       '<section class="kpi-grid">' +
         '<article class="kpi-card"><div class="kpi-label">On Progress</div><div class="kpi-value">' + (D.KONSTRUKSI.onProgress||0) + '</div></article>' +
         '<article class="kpi-card"><div class="kpi-label">Terlambat</div><div class="kpi-value">' + (D.KONSTRUKSI.terlambat||0) + '</div></article>' +
@@ -114,7 +118,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         '<thead><tr><th>Kavling</th><th>Proyek</th><th>Kontraktor</th><th>Progres</th><th class="num">Hari telat ST</th><th>Status</th><th></th></tr></thead>' +
         '<tbody>' + (rows || '<tr><td colspan="7" class="text-muted">Tidak ada data</td></tr>') + '</tbody>' +
       '</table></div>' +
-      '<p class="text-muted mt-2" style="font-size:12px">Sumber: kavling.json (progresBangun) · override sessionStorage</p></article>';
+      '<p class="source-note">Sumber: kavling.json (progresBangun) · override sessionStorage</p></article>';
 
     AdhShell.mount({ role: 'Teknik', title: 'Progres Konstruksi', content: html });
 

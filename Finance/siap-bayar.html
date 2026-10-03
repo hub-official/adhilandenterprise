@@ -3,10 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Siap Bayar Finance — Adhiland</title>
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#F4F6FA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B1220" media="(prefers-color-scheme: dark)">
+<title>Siap Bayar Finance — Adhiland ERP</title>
 <script>
-(function(){try{var t=localStorage.getItem('adh_theme');
-document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}
+(function(){try{var t=localStorage.getItem('adh_theme');if(t!=='dark'&&t!=='light'){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}
 catch(e){document.documentElement.setAttribute('data-theme','light');}})();
 </script>
 <link rel="stylesheet" href="../assets/css/tokens.css">
@@ -17,6 +19,7 @@ catch(e){document.documentElement.setAttribute('data-theme','light');}})();
 <script src="../assets/js/fmt.js"></script>
 <script src="../assets/js/theme.js"></script>
 <script src="../assets/js/local-state.js"></script>
+<script src="../assets/js/canonical-data.js"></script>
 <script src="../assets/js/data.js"></script>
 <script src="../assets/js/shell.js"></script>
 <script>
@@ -86,13 +89,13 @@ document.addEventListener('DOMContentLoaded', async function () {
       var canPay = normStatus(p.status) === 'disetujui';
       var chk = selected.has(p.id) ? 'checked' : '';
       var mockTag = (hasOverride(p.id) || p._mockCreated || p._paidAt)
-        ? ' <span class="text-muted" style="font-size:10px">(mock lokal)</span>' : '';
+        ? ' <span class="text-muted fs-10">(mock lokal)</span>' : '';
       var paidInfo = p._paidAt
-        ? '<span class="text-muted" style="font-size:10px">' + String(p._paidAt).slice(0, 16).replace('T', ' ') + '</span>'
+        ? '<span class="text-muted fs-10">' + String(p._paidAt).slice(0, 16).replace('T', ' ') + '</span>'
         : '—';
       var actions = canPay
         ? '<button class="btn btn-primary btn-sm btn-pay" data-id="' + p.id + '">Tandai dibayar</button>'
-        : '<span class="text-muted" style="font-size:11px">—</span>';
+        : '<span class="text-muted fs-11">—</span>';
       return '<tr>' +
         '<td>' + (canPay ? '<input type="checkbox" class="row-check" data-id="' + p.id + '" ' + chk + '>' : '') + '</td>' +
         '<td>' + p.id + '</td>' +
@@ -100,10 +103,10 @@ document.addEventListener('DOMContentLoaded', async function () {
         '<td>' + (p.jenis || '—') + '</td>' +
         '<td class="num">' + F.IDR(p.jumlah) + '</td>' +
         '<td>' + statusBadge(p.status) + mockTag + '</td>' +
-        '<td class="text-muted" style="font-size:11px">' + (p.sumberRole || '') + '</td>' +
+        '<td class="text-muted fs-11">' + (p.sumberRole || '') + '</td>' +
         '<td>' + (p.rekening || '—') + '</td>' +
         '<td>' + paidInfo + '</td>' +
-        '<td style="white-space:nowrap">' + actions + '</td>' +
+        '<td class="nowrap">' + actions + '</td>' +
         '</tr>';
     }).join('');
 
@@ -113,26 +116,26 @@ document.addEventListener('DOMContentLoaded', async function () {
     }).join('');
 
     var content =
-    '<div class="global-bar" style="flex-wrap:wrap;gap:8px">' +
+    '<div class="global-bar wrap gap-8">' +
       '<div class="filter-group" id="st-filters">' +
         '<span class="filter-label">Status</span>' +
         '<button class="chip ' + (statusFilter==='disetujui'?'active':'') + '" data-st="disetujui">Siap bayar (' + nSiap + ')</button>' +
         '<button class="chip ' + (statusFilter==='dibayar'?'active':'') + '" data-st="dibayar">Dibayar (' + nDibayar + ')</button>' +
         '<button class="chip ' + (statusFilter==='semua'?'active':'') + '" data-st="semua">Semua</button>' +
       '</div>' +
-      '<div class="filter-group" style="margin-left:auto;gap:8px">' +
+      '<div class="filter-group ml-auto gap-8">' +
         '<button class="btn btn-ghost btn-sm" id="btn-export-csv">Export CSV</button>' +
         '<button class="btn btn-primary btn-sm" id="btn-mass-pay" ' + (selected.size===0?'disabled':'') + '>Tandai dibayar massal (' + selected.size + ')</button>' +
       '</div>' +
     '</div>' +
-    '<div class="global-bar" style="padding-top:0">' +
+    '<div class="global-bar pt-0">' +
       '<div class="filter-group" id="role-filters">' +
         '<span class="filter-label">Sumber role</span>' +
         roleChipHtml +
       '</div>' +
     '</div>' +
-    '<p class="text-muted" style="font-size:12px;margin:0 0 12px">Item <strong>Disetujui</strong> (Direktur atau Finance dalam limit) masuk antrian bayar. <strong>Tandai dibayar</strong> = mock (sessionStorage) · kas &amp; realisasi budgeting disesuaikan di memori.</p>' +
-    '<section class="kpi-grid" style="grid-template-columns:repeat(3,1fr)">' +
+    '<p class="text-muted note-md">Item <strong>Disetujui</strong> (Direktur atau Finance dalam limit) masuk antrian bayar. <strong>Tandai dibayar</strong> = mock (sessionStorage) · kas &amp; realisasi budgeting disesuaikan di memori.</p>' +
+    '<section class="kpi-grid cols-3">' +
       '<article class="kpi-card">' +
         '<div class="kpi-label">Siap bayar</div>' +
         '<div class="kpi-value">' + nSiap + '</div>' +
@@ -154,7 +157,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         '<thead><tr><th></th><th>ID</th><th>Proyek</th><th>Jenis</th><th class="num">Nilai</th><th>Status</th><th>Role</th><th>Rekening</th><th>Dibayar pada</th><th>Aksi</th></tr></thead>' +
         '<tbody>' + (rows || '<tr><td colspan="10" class="text-muted">Tidak ada item — setujui pengajuan di Persetujuan dulu</td></tr>') + '</tbody>' +
       '</table></div>' +
-      '<p class="text-muted mt-2" style="font-size:12px">' + list.length + ' baris · tanpa integrasi bank · draft jurnal opsional di F5</p>' +
+      '<p class="text-muted mt-2 fs-12">' + list.length + ' baris · tanpa integrasi bank · draft jurnal opsional di F5</p>' +
     '</article>';
 
     AdhShell.mount({ role: ROLE, title: 'Siap Bayar (Finance)', content: content });
@@ -173,21 +176,34 @@ document.addEventListener('DOMContentLoaded', async function () {
     });
     document.querySelectorAll('.btn-pay').forEach(function (btn) {
       btn.addEventListener('click', function () {
-        if (!confirm('Tandai dibayar ' + btn.dataset.id + '? (mock lokal — kas & realisasi disesuaikan)')) return;
-        LS.markPaid(btn.dataset.id);
-        selected.delete(btn.dataset.id);
-        LS.showToast('Dibayar (mock lokal): ' + btn.dataset.id, 'info');
-        render();
+        var id = btn.dataset.id;
+        AdhShell.confirmDialog({
+          title: 'Tandai dibayar',
+          message: 'Tandai ' + id + ' sebagai dibayar? Kas dan realisasi akan disesuaikan (mock lokal).',
+          confirmText: 'Tandai dibayar',
+          onConfirm: function () {
+            LS.markPaid(id);
+            selected.delete(id);
+            LS.showToast('Dibayar (mock lokal): ' + id, 'info');
+            render();
+          }
+        });
       });
     });
     document.getElementById('btn-mass-pay') && document.getElementById('btn-mass-pay').addEventListener('click', function () {
       if (selected.size === 0) return;
       var ids = Array.from(selected);
-      if (!confirm('Tandai dibayar ' + ids.length + ' item? (mock lokal)')) return;
-      LS.markPaidBulk(ids);
-      selected.clear();
-      LS.showToast('Dibayar massal (mock lokal): ' + ids.length + ' item', 'info');
-      render();
+      AdhShell.confirmDialog({
+        title: 'Bayar massal',
+        message: 'Tandai ' + ids.length + ' item sebagai dibayar? Aksi ini disimpan sebagai mock lokal.',
+        confirmText: 'Bayar ' + ids.length + ' item',
+        onConfirm: function () {
+          LS.markPaidBulk(ids);
+          selected.clear();
+          LS.showToast('Dibayar massal (mock lokal): ' + ids.length + ' item', 'info');
+          render();
+        }
+      });
     });
     document.getElementById('btn-export-csv') && document.getElementById('btn-export-csv').addEventListener('click', function () {
       var rows = list.map(function (p) {

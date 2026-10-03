@@ -3,8 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Realisasi Biaya — Adhiland Finance</title>
-<script>(function(){try{var t=localStorage.getItem('adh_theme');document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#F4F6FA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B1220" media="(prefers-color-scheme: dark)">
+<title>Realisasi Biaya — Adhiland ERP</title>
+<script>(function(){try{var t=localStorage.getItem('adh_theme');if(t!=='dark'&&t!=='light'){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
 <link rel="stylesheet" href="../assets/css/tokens.css">
 <link rel="stylesheet" href="../assets/css/app.css">
 </head>
@@ -12,6 +15,7 @@
 <div id="app"></div>
 <script src="../assets/js/fmt.js"></script>
 <script src="../assets/js/theme.js"></script>
+<script src="../assets/js/canonical-data.js"></script>
 <script src="../assets/js/data.js"></script>
 <script src="../assets/js/shell.js"></script>
 <script>
@@ -43,7 +47,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     totalSisa += x.sisa;
     var pct = x.rencana ? Math.round((x.terbayar / x.rencana) * 100) : 0;
     return '<tr>' +
-      '<td>' + k + ' <span class="text-muted" style="font-size:11px">(' + x.n + ')</span></td>' +
+      '<td>' + k + ' <span class="text-muted fs-11">(' + x.n + ')</span></td>' +
       '<td class="num">' + F.IDR(x.rencana, 'compact') + '</td>' +
       '<td class="num">' + F.IDR(x.terbayar, 'compact') + '</td>' +
       '<td class="num">' + F.IDR(x.sisa, 'compact') + '</td>' +
@@ -72,7 +76,7 @@ document.addEventListener('DOMContentLoaded', async function () {
   var html =
     '<div class="global-bar">' +
       '<span class="filter-label">Realisasi Biaya</span>' +
-      '<span class="text-muted" style="font-size:12px;margin-left:auto">' + items.length + ' item budgeting · per ' + F.dateTime(D.AS_OF) + '</span>' +
+      '<span class="text-muted fs-12 ml-auto">' + items.length + ' item budgeting · per ' + F.dateTime(D.AS_OF) + '</span>' +
     '</div>' +
     '<section class="kpi-grid">' +
       '<article class="kpi-card"><div class="kpi-label">Total rencana</div><div class="kpi-value">' + F.IDR(totalRencana, 'compact') + '</div></article>' +
@@ -91,7 +95,7 @@ document.addEventListener('DOMContentLoaded', async function () {
           '<thead><tr><th>Cluster</th><th class="num">Rencana</th><th class="num">Terbayar</th><th class="num">Sisa</th></tr></thead>' +
           '<tbody>' + (clusterRows || '<tr><td colspan="4" class="text-muted">—</td></tr>') + '</tbody></table></div></article>' +
     '</div>' +
-    '<p class="text-muted mt-2" style="font-size:12px">Sumber: budgeting_item.json — heatmap dummy 16×12 dihapus. Angka realisasi masih banyak 0 sesuai snapshot.</p>';
+    '<p class="source-note">Sumber: budgeting_item.json — heatmap dummy 16×12 dihapus. Angka realisasi masih banyak 0 sesuai snapshot.</p>';
 
   AdhShell.mount({ role: 'Direktur', title: 'Realisasi Biaya', content: html });
 });

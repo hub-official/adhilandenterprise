@@ -3,10 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Tata Kelola Finance — Adhiland</title>
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#F4F6FA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B1220" media="(prefers-color-scheme: dark)">
+<title>Tata Kelola Finance — Adhiland ERP</title>
 <script>
-(function(){try{var t=localStorage.getItem('adh_theme');
-document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}
+(function(){try{var t=localStorage.getItem('adh_theme');if(t!=='dark'&&t!=='light'){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}
 catch(e){document.documentElement.setAttribute('data-theme','light');}})();
 </script>
 <link rel="stylesheet" href="../assets/css/tokens.css">
@@ -17,6 +19,7 @@ catch(e){document.documentElement.setAttribute('data-theme','light');}})();
 <script src="../assets/js/fmt.js"></script>
 <script src="../assets/js/theme.js"></script>
 <script src="../assets/js/local-state.js"></script>
+<script src="../assets/js/canonical-data.js"></script>
 <script src="../assets/js/data.js"></script>
 <script src="../assets/js/shell.js"></script>
 <script>
@@ -34,19 +37,19 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     const auditRows = audit.map(function (a) {
       return '<tr>' +
-        '<td style="font-size:11px;white-space:nowrap">' + String(a.at || '').slice(0, 19).replace('T', ' ') + '</td>' +
+        '<td class="fs-11 nowrap">' + String(a.at || '').slice(0, 19).replace('T', ' ') + '</td>' +
         '<td>' + (a.aksi || '—') + '</td>' +
-        '<td class="text-muted" style="font-size:12px">' + (a.refId || '—') + '</td>' +
-        '<td style="font-size:12px">' + (a.by || '—') + '</td>' +
-        '<td class="text-muted" style="font-size:11px">' + (a.alasan ? (String(a.alasan).length > 50 ? String(a.alasan).slice(0, 50) + '…' : a.alasan) : '—') + '</td>' +
+        '<td class="text-muted fs-12">' + (a.refId || '—') + '</td>' +
+        '<td class="fs-12">' + (a.by || '—') + '</td>' +
+        '<td class="text-muted fs-11">' + (a.alasan ? (String(a.alasan).length > 50 ? String(a.alasan).slice(0, 50) + '…' : a.alasan) : '—') + '</td>' +
         '</tr>';
     }).join('');
 
     const content =
-    '<p class="text-muted" style="font-size:12px;margin:0 0 12px">Laporan keputusan kas dari <strong>data + mock lokal</strong>. Angka forecast <em>indikatif</em> — bukan proyeksi bank. Tidak mengarang neraca/LR.</p>' +
+    '<p class="text-muted note-md">Laporan keputusan kas dari <strong>data + mock lokal</strong>. Angka forecast <em>indikatif</em> — bukan proyeksi bank. Tidak mengarang neraca/LR.</p>' +
 
     '<h3 style="font-size:14px;margin:0 0 8px">Budget vs Actual vs Commit</h3>' +
-    '<section class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">' +
+    '<section class="kpi-grid">' +
       '<article class="kpi-card">' +
         '<div class="kpi-label">Anggaran (rencana)</div>' +
         '<div class="kpi-value">' + F.IDR(snap.anggaran, 'compact') + '</div>' +
@@ -69,7 +72,7 @@ document.addEventListener('DOMContentLoaded', async function () {
       '</article>' +
     '</section>' +
 
-    '<article class="card" style="margin-top:12px">' +
+    '<article class="card mt-12">' +
       '<div class="table-wrap"><table class="data-table">' +
         '<thead><tr><th>Komponen</th><th class="num">Nilai</th><th>Keterangan</th></tr></thead>' +
         '<tbody>' +
@@ -83,8 +86,8 @@ document.addEventListener('DOMContentLoaded', async function () {
       '</table></div>' +
     '</article>' +
 
-    '<h3 style="font-size:14px;margin:16px 0 8px">Cash forecast (indikatif)</h3>' +
-    '<section class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">' +
+    '<h3 class="fs-14 my-16-8">Cash forecast (indikatif)</h3>' +
+    '<section class="kpi-grid">' +
       '<article class="kpi-card">' +
         '<div class="kpi-label">Kas saat ini</div>' +
         '<div class="kpi-value">' + F.IDR(snap.kas, 'compact') + '</div>' +
@@ -106,11 +109,11 @@ document.addEventListener('DOMContentLoaded', async function () {
         '<div class="kpi-sub">tempo ' + F.IDR(snap.tempo, 'compact') + ' · proxy ' + F.IDR(snap.masukProxy, 'compact') + '</div>' +
       '</article>' +
     '</section>' +
-    '<p class="text-muted" style="font-size:11px;margin:6px 0 0">Proxy masuk ≈ 2% uang masuk penjualan (bukan jadwal tagihan nyata). Label: indikatif.</p>' +
+    '<p class="text-muted fs-11 my-6-0">Proxy masuk ≈ 2% uang masuk penjualan (bukan jadwal tagihan nyata). Label: indikatif.</p>' +
 
-    '<div class="global-bar" style="margin-top:16px">' +
-      '<h3 style="font-size:14px;margin:0">Audit log keputusan (mock lokal)</h3>' +
-      '<div class="filter-group" style="margin-left:auto;gap:8px">' +
+    '<div class="global-bar mt-16">' +
+      '<h3 class="fs-14 m-0">Audit log keputusan (mock lokal)</h3>' +
+      '<div class="filter-group ml-auto gap-8">' +
         '<button class="btn btn-ghost btn-sm" id="btn-export-audit">Export CSV audit</button>' +
         '<button class="btn btn-ghost btn-sm" id="btn-export-antrian">Export CSV antrian</button>' +
         '<button class="btn btn-ghost btn-sm" id="btn-export-siap">Export CSV siap bayar</button>' +
@@ -121,7 +124,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         '<thead><tr><th>Waktu</th><th>Aksi</th><th>Ref</th><th>Oleh</th><th>Alasan</th></tr></thead>' +
         '<tbody>' + (auditRows || '<tr><td colspan="5" class="text-muted">Belum ada keputusan mock di sesi ini — approve/reject/loloskan/bayar akan tercatat di sini</td></tr>') + '</tbody>' +
       '</table></div>' +
-      '<p class="text-muted mt-2" style="font-size:12px">' + audit.length + ' entri (maks 200, sessionStorage) · tidak dikirim ke server</p>' +
+      '<p class="text-muted mt-2 fs-12">' + audit.length + ' entri (maks 200, sessionStorage) · tidak dikirim ke server</p>' +
     '</article>';
 
     AdhShell.mount({ role: ROLE, title: 'Tata Kelola Finance', content: content });

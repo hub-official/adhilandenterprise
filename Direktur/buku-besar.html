@@ -3,8 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Buku Besar — Adhiland Finance</title>
-<script>(function(){try{var t=localStorage.getItem('adh_theme');document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#F4F6FA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B1220" media="(prefers-color-scheme: dark)">
+<title>Buku Besar — Adhiland ERP</title>
+<script>(function(){try{var t=localStorage.getItem('adh_theme');if(t!=='dark'&&t!=='light'){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
 <link rel="stylesheet" href="../assets/css/tokens.css">
 <link rel="stylesheet" href="../assets/css/app.css">
 </head>
@@ -12,6 +15,7 @@
 <div id="app"></div>
 <script src="../assets/js/fmt.js"></script>
 <script src="../assets/js/theme.js"></script>
+<script src="../assets/js/canonical-data.js"></script>
 <script src="../assets/js/data.js"></script>
 <script src="../assets/js/shell.js"></script>
 <script>
@@ -41,9 +45,9 @@ document.addEventListener('DOMContentLoaded', async function () {
     const content = `
     <div class="global-bar">
       <span class="filter-label">Buku Besar</span>
-      <span class="text-muted" style="font-size:12px;margin-left:auto">${akun.length} akun · ${total.toLocaleString('id-ID')} baris mutasi</span>
+      <span class="text-muted fs-12 ml-auto">${akun.length} akun · ${total.toLocaleString('id-ID')} baris mutasi</span>
     </div>
-    <section class="kpi-grid" style="grid-template-columns:repeat(3,1fr)">
+    <section class="kpi-grid cols-3">
       <article class="kpi-card"><div class="kpi-label">Akun</div><div class="kpi-value">${akun.length}</div></article>
       <article class="kpi-card"><div class="kpi-label">Baris (sample load)</div><div class="kpi-value">${allRows.length.toLocaleString('id-ID')}</div><div class="kpi-sub">Total DB: ${total.toLocaleString('id-ID')}</div></article>
       <article class="kpi-card"><div class="kpi-label">Halaman</div><div class="kpi-value">${pg.page}/${pg.pages}</div></article>
@@ -51,7 +55,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     <article class="card">
       <div class="table-wrap"><table class="data-table"><thead><tr>${head}</tr></thead><tbody>${rows||'<tr><td>Kosong</td></tr>'}</tbody></table></div>
       <div class="flex-between mt-3">
-        <p class="text-muted" style="font-size:12px">Sumber: buku_besar.csv (sample 500 baris di JSON)</p>
+        <p class="source-note">Sumber: buku_besar.csv (sample 500 baris di JSON)</p>
         <div class="flex gap-2">
           <button class="btn btn-secondary btn-sm" id="prev" ${page<=1?'disabled':''}>← Prev</button>
           <button class="btn btn-secondary btn-sm" id="next" ${page>=pg.pages?'disabled':''}>Next →</button>
@@ -59,8 +63,8 @@ document.addEventListener('DOMContentLoaded', async function () {
       </div>
     </article>`;
     AdhShell.mount({ role: 'Direktur', title: 'Buku Besar', content });
-    document.getElementById('prev')?.addEventListener('click', () => { page--; render(); });
-    document.getElementById('next')?.addEventListener('click', () => { page++; render(); });
+    document.getElementById('prev')&&document.getElementById('prev').addEventListener('click', () => { page--; render(); });
+    document.getElementById('next')&&document.getElementById('next').addEventListener('click', () => { page++; render(); });
   }
   render();
 });

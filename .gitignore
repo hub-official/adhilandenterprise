@@ -8,3 +8,7 @@ Thumbs.db
 
 .vercel
 .env*
+
+# Agent/editor internals — memory log + throwaway verification screenshots.
+# Project data, not deliverable. Keep on disk, never commit.
+.workbuddy-ai/

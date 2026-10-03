@@ -3,20 +3,23 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Budgeting — Adhiland Finance</title>
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#F4F6FA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B1220" media="(prefers-color-scheme: dark)">
+<title>Budgeting — Adhiland ERP</title>
 <script>
-(function(){try{var t=localStorage.getItem('adh_theme');
-document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}
+(function(){try{var t=localStorage.getItem('adh_theme');if(t!=='dark'&&t!=='light'){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}
 catch(e){document.documentElement.setAttribute('data-theme','light');}})();
 </script>
 <link rel="stylesheet" href="../assets/css/tokens.css">
 <link rel="stylesheet" href="../assets/css/app.css">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="../assets/js/vendor/chart.umd.min.js" onerror="(function(){var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js';document.head.appendChild(s);})()"></script>
 </head>
 <body>
 <div id="app"></div>
 <script src="../assets/js/fmt.js"></script>
 <script src="../assets/js/theme.js"></script>
+<script src="../assets/js/canonical-data.js"></script>
 <script src="../assets/js/data.js"></script>
 <script src="../assets/js/shell.js"></script>
 <script>
@@ -76,7 +79,7 @@ document.addEventListener('DOMContentLoaded', async function () {
   const summaryRows = projectRows.map(function (p) {
     const pct = p.rencana ? Math.round((p.terbayar / p.rencana) * 100) : 0;
     return '<tr>' +
-      '<td>' + p.name + ' <span class="text-muted" style="font-size:11px">(' + p.n + ')</span></td>' +
+      '<td>' + p.name + ' <span class="text-muted fs-11">(' + p.n + ')</span></td>' +
       '<td class="num">' + F.IDR(p.rencana, 'compact') + '</td>' +
       '<td class="num">' + F.IDR(p.terbayar, 'compact') + '</td>' +
       '<td><div class="in-cell-bar"><div class="bar-track"><div class="bar-fill" style="width:' + Math.min(100, pct) + '%;background:' + projColor(p.name) + '"></div></div><span>' + pct + '%</span></div></td>' +
@@ -100,7 +103,7 @@ document.addEventListener('DOMContentLoaded', async function () {
       <div class="filter-group">
         <span class="filter-label">Budgeting</span>
       </div>
-      <span class="text-muted" style="font-size:12px;margin-left:auto">${items.length} item · data per ${F.dateTime(D.AS_OF)}</span>
+      <span class="text-muted fs-12 ml-auto">${items.length} item · data per ${F.dateTime(D.AS_OF)}</span>
     </div>
 
     <section class="kpi-grid">
@@ -129,8 +132,8 @@ document.addEventListener('DOMContentLoaded', async function () {
         <div class="card-header">
           <h3 class="card-title">Anggaran vs Realisasi per jenis</h3>
         </div>
-        <div class="chart-container"><canvas id="chart-budget"></canvas></div>
-        <p class="text-muted mt-2" style="font-size:11px">Sumber: budgeting_item.json (agregat jenis)</p>
+        <div class="chart-container"><canvas id="chart-budget" role="img" aria-label="Grafik batang anggaran versus realisasi per jenis pekerjaan">Grafik anggaran vs realisasi. Data tersedia pada tabel di bawah.</canvas></div>
+        <p class="source-note">Sumber: budgeting_item.json (agregat jenis)</p>
       </article>
       <article class="card">
         <div class="card-header">
@@ -163,7 +166,7 @@ document.addEventListener('DOMContentLoaded', async function () {
           <tbody>${summaryRows}</tbody>
         </table>
       </div>
-      <p class="text-muted mt-2" style="font-size:12px">Sumber: budgeting_item.json — bukan hardcode</p>
+      <p class="source-note">Sumber: budgeting_item.json — bukan hardcode</p>
     </article>
   `;
   AdhShell.mount({ role: 'Direktur', title: 'Budgeting', content });

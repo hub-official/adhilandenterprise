@@ -3,10 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Home Marketing — Adhiland Finance</title>
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#F4F6FA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B1220" media="(prefers-color-scheme: dark)">
+<title>Home Marketing — Adhiland ERP</title>
 <script>
-(function(){try{var t=localStorage.getItem('adh_theme');
-document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}
+(function(){try{var t=localStorage.getItem('adh_theme');if(t!=='dark'&&t!=='light'){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}
 catch(e){document.documentElement.setAttribute('data-theme','light');}})();
 </script>
 <link rel="stylesheet" href="../assets/css/tokens.css">
@@ -16,6 +18,7 @@ catch(e){document.documentElement.setAttribute('data-theme','light');}})();
 <div id="app"></div>
 <script src="../assets/js/fmt.js"></script>
 <script src="../assets/js/theme.js"></script>
+<script src="../assets/js/canonical-data.js"></script>
 <script src="../assets/js/data.js"></script>
 <script src="../assets/js/shell.js"></script>
 <script>
@@ -62,7 +65,7 @@ document.addEventListener('DOMContentLoaded', async function () {
   const content = `
     <div class="global-bar">
       <span class="filter-label">Home Marketing</span>
-      <span class="text-muted" style="font-size:12px;margin-left:auto">Data per ${F.dateTime(D.AS_OF)}</span>
+      <span class="text-muted fs-12 ml-auto">Data per ${F.dateTime(D.AS_OF)}</span>
     </div>
     <section class="kpi-grid">
       <article class="kpi-card">
@@ -101,7 +104,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             <tbody>${dealRows}</tbody>
           </table>
         </div>
-        <p class="text-muted mt-2" style="font-size:12px">Sumber: kavling.json · status = deal · top 12 by sisa</p>
+        <p class="source-note">Sumber: kavling.json · status = deal · top 12 by sisa</p>
       </article>
       <article class="card">
         <div class="card-header"><h3 class="card-title">Stok per proyek</h3></div>

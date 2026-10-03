@@ -3,10 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Master Data — Adhiland Finance</title>
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#F4F6FA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B1220" media="(prefers-color-scheme: dark)">
+<title>Master Data — Adhiland ERP</title>
 <script>
-(function(){try{var t=localStorage.getItem('adh_theme');
-document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}
+(function(){try{var t=localStorage.getItem('adh_theme');if(t!=='dark'&&t!=='light'){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}
 catch(e){document.documentElement.setAttribute('data-theme','light');}})();
 </script>
 <link rel="stylesheet" href="../assets/css/tokens.css">
@@ -50,6 +52,7 @@ catch(e){document.documentElement.setAttribute('data-theme','light');}})();
 </div>
 <script src="../assets/js/fmt.js"></script>
 <script src="../assets/js/theme.js"></script>
+<script src="../assets/js/canonical-data.js"></script>
 <script src="../assets/js/data.js"></script>
 <script src="../assets/js/shell.js"></script>
 <script>
@@ -121,7 +124,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         '<td>' + jenis + '</td>' +
         '<td>' + (r.saldoNormal || '—') + '</td>' +
         '<td>' + kasBadge(r.kas) + '</td>' +
-        '<td class="text-muted" style="font-size:12px">' + (r.perusahaan || '—') + '</td>' +
+        '<td class="text-muted fs-12">' + (r.perusahaan || '—') + '</td>' +
         '<td><button type="button" class="btn btn-ghost btn-sm btn-coa-edit" data-kode="' + (r.kode || '') + '">Edit</button></td>' +
         '</tr>';
     }).join('');
@@ -129,7 +132,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     return {
       html:
         '<div class="filter-bar">' +
-          '<input class="form-input" id="coa-search" style="width:220px" placeholder="Cari kode / nama akun…" value="' + coaQ.replace(/"/g, '&quot;') + '">' +
+          '<input class="form-input w-220" id="coa-search"  placeholder="Cari kode / nama akun…" value="' + coaQ.replace(/"/g, '&quot;') + '">' +
           '<select class="select-sm" id="coa-jenis">' +
             '<option value="semua"' + (coaJenis==='semua'?' selected':'') + '>Semua jenis</option>' +
             '<option value="header"' + (coaJenis==='header'?' selected':'') + '>Hanya grup</option>' +
@@ -139,10 +142,10 @@ document.addEventListener('DOMContentLoaded', async function () {
             '<input type="checkbox" id="coa-leaf"' + (coaOnlyLeaf?' checked':'') + '> Hanya akun detail</label>' +
           '<label class="meta-strip" style="display:flex;align-items:center;gap:6px;cursor:pointer">' +
             '<input type="checkbox" id="coa-kas"' + (coaOnlyKas?' checked':'') + '> Hanya akun kas</label>' +
-          '<span class="meta-strip" style="margin-left:auto">' + filtered.length.toLocaleString('id-ID') + ' dari ' + coaAll.length.toLocaleString('id-ID') + ' akun</span>' +
+          '<span class="meta-strip ml-auto">' + filtered.length.toLocaleString('id-ID') + ' dari ' + coaAll.length.toLocaleString('id-ID') + ' akun</span>' +
         '</div>' +
         '<div class="table-wrap"><table class="data-table">' +
-          '<thead><tr><th style="width:120px">Kode</th><th>Nama Akun</th><th>Jenis</th><th>Saldo Normal</th><th>Kas</th><th>Cakupan</th><th style="width:72px"></th></tr></thead>' +
+          '<thead><tr><th class="w-120">Kode</th><th>Nama Akun</th><th>Jenis</th><th>Saldo Normal</th><th>Kas</th><th>Cakupan</th><th class="w-72"></th></tr></thead>' +
           '<tbody>' + (rows || '<tr><td colspan="7" class="empty-state">Tidak ada akun cocok filter</td></tr>') + '</tbody>' +
         '</table></div>' +
         '<div class="pager">' +
@@ -173,8 +176,8 @@ document.addEventListener('DOMContentLoaded', async function () {
         '</tr>';
     }).join('');
     return '<div class="filter-bar">' +
-        '<input class="form-input" id="vendor-search" style="width:240px" placeholder="Cari vendor / bank / rekening…" value="' + vendorQ.replace(/"/g,'&quot;') + '">' +
-        '<span class="meta-strip" style="margin-left:auto">' + filtered.length.toLocaleString('id-ID') + ' rekening</span>' +
+        '<input class="form-input w-240" id="vendor-search"  placeholder="Cari vendor / bank / rekening…" value="' + vendorQ.replace(/"/g,'&quot;') + '">' +
+        '<span class="meta-strip ml-auto">' + filtered.length.toLocaleString('id-ID') + ' rekening</span>' +
       '</div>' +
       '<div class="table-wrap"><table class="data-table">' +
         '<thead><tr><th>Vendor</th><th>Bank</th><th>No. Rekening</th><th>Nama Rekening</th></tr></thead>' +
@@ -228,17 +231,17 @@ document.addEventListener('DOMContentLoaded', async function () {
       });
       search.addEventListener('change', function () { coaQ = search.value; coaPage = 1; render(); });
     }
-    document.getElementById('coa-jenis')?.addEventListener('change', function (e) {
+    document.getElementById('coa-jenis')&&document.getElementById('coa-jenis').addEventListener('change', function (e) {
       coaJenis = e.target.value; coaPage = 1; render();
     });
-    document.getElementById('coa-leaf')?.addEventListener('change', function (e) {
+    document.getElementById('coa-leaf')&&document.getElementById('coa-leaf').addEventListener('change', function (e) {
       coaOnlyLeaf = e.target.checked; coaPage = 1; render();
     });
-    document.getElementById('coa-kas')?.addEventListener('change', function (e) {
+    document.getElementById('coa-kas')&&document.getElementById('coa-kas').addEventListener('change', function (e) {
       coaOnlyKas = e.target.checked; coaPage = 1; render();
     });
-    document.getElementById('coa-prev')?.addEventListener('click', function () { coaPage--; render(); });
-    document.getElementById('coa-next')?.addEventListener('click', function () { coaPage++; render(); });
+    document.getElementById('coa-prev')&&document.getElementById('coa-prev').addEventListener('click', function () { coaPage--; render(); });
+    document.getElementById('coa-next')&&document.getElementById('coa-next').addEventListener('click', function () { coaPage++; render(); });
     document.querySelectorAll('.btn-coa-edit').forEach(function (btn) {
       btn.addEventListener('click', function () {
         const kode = btn.getAttribute('data-kode');
@@ -281,12 +284,12 @@ document.addEventListener('DOMContentLoaded', async function () {
         <button type="button" class="chip ${tab==='project'?'active':''}" data-tab="project">Proyek</button>
         <button type="button" class="chip ${tab==='user'?'active':''}" data-tab="user">Pengguna</button>
       </div>
-      <div class="filter-group" style="margin-left:auto">
+      <div class="filter-group ml-auto">
         <button type="button" class="btn btn-secondary btn-sm" id="btn-export">Export</button>
         <button type="button" class="btn btn-primary btn-sm" id="btn-add">${tab==='coa'?'+ Akun baru':tab==='vendor'?'+ Rekening':'+ Tambah'}</button>
       </div>
     </div>
-    <section class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">
+    <section class="kpi-grid">
       <article class="kpi-card">
         <div class="kpi-label">Total akun CoA</div>
         <div class="kpi-value">${coaAll.length.toLocaleString('id-ID')}</div>
@@ -325,31 +328,31 @@ document.addEventListener('DOMContentLoaded', async function () {
         render();
       });
     });
-    document.getElementById('btn-export')?.addEventListener('click', function () {
-      alert('Export mock: ' + tab + ' · ' + (tab==='coa'?coaAll.length:tab==='vendor'?vendorsAll.length:usersAll.length) + ' baris');
+    document.getElementById('btn-export')&&document.getElementById('btn-export').addEventListener('click', function () {
+      AdhShell.showToast('Export mock: ' + tab + ' · ' + (tab==='coa'?coaAll.length:tab==='vendor'?vendorsAll.length:usersAll.length) + ' baris', 'info');
     });
-    document.getElementById('btn-add')?.addEventListener('click', function () {
+    document.getElementById('btn-add')&&document.getElementById('btn-add').addEventListener('click', function () {
       openDrawer('Tambah ' + tab, '<p class="meta-strip">Form create — mock UI. Backend belum terhubung.</p>');
     });
 
     if (tab === 'coa') bindCoaEvents();
     if (tab === 'vendor') {
-      document.getElementById('vendor-search')?.addEventListener('keydown', function (e) {
+      document.getElementById('vendor-search')&&document.getElementById('vendor-search').addEventListener('keydown', function (e) {
         if (e.key === 'Enter') { vendorQ = e.target.value; vendorPage = 1; render(); }
       });
-      document.getElementById('vend-prev')?.addEventListener('click', function () { vendorPage--; render(); });
-      document.getElementById('vend-next')?.addEventListener('click', function () { vendorPage++; render(); });
+      document.getElementById('vend-prev')&&document.getElementById('vend-prev').addEventListener('click', function () { vendorPage--; render(); });
+      document.getElementById('vend-next')&&document.getElementById('vend-next').addEventListener('click', function () { vendorPage++; render(); });
     }
   }
 
-  document.getElementById('drawer-close')?.addEventListener('click', closeDrawer);
-  document.getElementById('drawer-cancel')?.addEventListener('click', closeDrawer);
-  document.getElementById('drawer-overlay')?.addEventListener('click', function(e){ if(e.target.id==='drawer-overlay') closeDrawer(); });
-  document.getElementById('drawer-save')?.addEventListener('click', function () {
+  document.getElementById('drawer-close')&&document.getElementById('drawer-close').addEventListener('click', closeDrawer);
+  document.getElementById('drawer-cancel')&&document.getElementById('drawer-cancel').addEventListener('click', closeDrawer);
+  document.getElementById('drawer-overlay')&&document.getElementById('drawer-overlay').addEventListener('click', function(e){ if(e.target.id==='drawer-overlay') closeDrawer(); });
+  document.getElementById('drawer-save')&&document.getElementById('drawer-save').addEventListener('click', function () {
     if (selectedCoa) {
       const nama = document.getElementById('edit-nama');
       if (nama) selectedCoa.nama = nama.value;
-      alert('Mock simpan: ' + selectedCoa.kode + ' · ' + selectedCoa.nama);
+      AdhShell.showToast('Mock simpan: ' + selectedCoa.kode + ' · ' + selectedCoa.nama, 'info');
     }
     closeDrawer();
     render();

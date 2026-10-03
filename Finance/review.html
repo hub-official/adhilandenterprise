@@ -3,10 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Antrian Review Finance — Adhiland</title>
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#F4F6FA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B1220" media="(prefers-color-scheme: dark)">
+<title>Antrian Review Finance — Adhiland ERP</title>
 <script>
-(function(){try{var t=localStorage.getItem('adh_theme');
-document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}
+(function(){try{var t=localStorage.getItem('adh_theme');if(t!=='dark'&&t!=='light'){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}
 catch(e){document.documentElement.setAttribute('data-theme','light');}})();
 </script>
 <link rel="stylesheet" href="../assets/css/tokens.css">
@@ -17,6 +19,7 @@ catch(e){document.documentElement.setAttribute('data-theme','light');}})();
 <script src="../assets/js/fmt.js"></script>
 <script src="../assets/js/theme.js"></script>
 <script src="../assets/js/local-state.js"></script>
+<script src="../assets/js/canonical-data.js"></script>
 <script src="../assets/js/data.js"></script>
 <script src="../assets/js/shell.js"></script>
 <script>
@@ -47,25 +50,28 @@ document.addEventListener('DOMContentLoaded', async function () {
   }
   function openReturnDrawer(ids) {
     returnTarget = { ids: ids.slice() };
-    var overlay = document.getElementById('return-overlay');
-    var input = document.getElementById('return-alasan');
-    if (input) input.value = '';
-    if (overlay) { overlay.style.display = 'flex'; setTimeout(function () { input && input.focus(); }, 50); }
-  }
-  function closeReturnDrawer() {
-    returnTarget = null;
-    var overlay = document.getElementById('return-overlay');
-    if (overlay) overlay.style.display = 'none';
-  }
-  function confirmReturn() {
-    var input = document.getElementById('return-alasan');
-    var alasan = (input && input.value || '').trim();
-    if (!alasan) { LS.showToast('Alasan pengembalian wajib diisi', 'warn'); return; }
-    if (!returnTarget || !returnTarget.ids.length) return;
-    LS.setPengajuanStatusBulk(returnTarget.ids, 'Dikembalikan', alasan);
-    closeReturnDrawer();
-    LS.showToast('Dikembalikan (mock lokal)', 'info');
-    render();
+    var d = AdhShell.openDrawer({
+      id: 'return-drawer',
+      title: 'Kembalikan pengajuan' + (ids.length > 1 ? ' (' + ids.length + ' item)' : ''),
+      body: '<p class="text-muted note-md">Alasan pengembalian wajib diisi (disimpan mock lokal).</p>' +
+            '<label class="form-label" for="return-alasan">Alasan</label>' +
+            '<textarea id="return-alasan" class="form-input textarea-auto" rows="4"  placeholder="Contoh: dokumen belum lengkap / budget tidak sesuai"></textarea>',
+      footer: '<button class="btn btn-ghost" data-drawer-close type="button">Batal</button>' +
+              '<button class="btn btn-primary" id="return-confirm" type="button">Kembalikan</button>'
+    });
+    var input = d.el.querySelector('#return-alasan');
+    if (input) setTimeout(function () { input.focus(); }, 60);
+    var btn = d.el.querySelector('#return-confirm');
+    if (btn) btn.addEventListener('click', function () {
+      var alasan = (input && input.value || '').trim();
+      if (!alasan) { LS.showToast('Alasan pengembalian wajib diisi', 'warn'); if (input) input.focus(); return; }
+      if (!returnTarget || !returnTarget.ids.length) return;
+      LS.setPengajuanStatusBulk(returnTarget.ids, 'Dikembalikan', alasan);
+      returnTarget = null;
+      d.close();
+      LS.showToast('Dikembalikan (mock lokal)', 'info');
+      render();
+    });
   }
   function filterList() {
     var list = AdhData.PENGAJUAN || [];
@@ -100,7 +106,7 @@ document.addEventListener('DOMContentLoaded', async function () {
           '<button class="btn btn-primary btn-sm btn-pass" data-id="' + p.id + '">Loloskan</button> ' +
           (underLimit
             ? '<button class="btn btn-primary btn-sm btn-approve-limit" data-id="' + p.id + '" title="≤ limit Finance">Setujui (limit)</button> '
-            : '<span class="text-muted" style="font-size:10px" title="Di atas limit">→ Direktur</span> ') +
+            : '<span class="text-muted fs-10"  title="Di atas limit">→ Direktur</span> ') +
           '<button class="btn btn-ghost btn-sm btn-return" data-id="' + p.id + '">Kembalikan</button>';
       }
       return '<tr>' +
@@ -108,12 +114,12 @@ document.addEventListener('DOMContentLoaded', async function () {
         '<td>' + (p.proyek || p.cluster || '—') + '</td>' +
         '<td>' + (p.jenis || '—') + '</td>' +
         '<td class="num">' + F.IDR(p.jumlah) +
-          (can && underLimit ? ' <span class="text-muted" style="font-size:10px">≤limit</span>' : '') +
-          (can && !underLimit ? ' <span class="text-muted" style="font-size:10px">&gt;limit</span>' : '') +
+          (can && underLimit ? ' <span class="text-muted fs-10">≤limit</span>' : '') +
+          (can && !underLimit ? ' <span class="text-muted fs-10">&gt;limit</span>' : '') +
         '</td>' +
         '<td>' + statusBadge(p.status) + '</td>' +
-        '<td class="text-muted" style="font-size:11px">' + (p.sumberRole || '') + '</td>' +
-        '<td style="white-space:nowrap">' + actions + '</td>' +
+        '<td class="text-muted fs-11">' + (p.sumberRole || '') + '</td>' +
+        '<td class="nowrap">' + actions + '</td>' +
         '</tr>';
     }).join('');
 
@@ -122,7 +128,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     }).join('');
 
     var content =
-    '<div class="global-bar" style="flex-wrap:wrap;gap:8px">' +
+    '<div class="global-bar wrap gap-8">' +
       '<div class="filter-group" id="st-filters">' +
         '<span class="filter-label">Status</span>' +
         '<button class="chip ' + (statusFilter==='menunggu review'?'active':'') + '" data-st="menunggu review">Antrian (' + nReview + ')</button>' +
@@ -132,26 +138,16 @@ document.addEventListener('DOMContentLoaded', async function () {
         '<button class="chip ' + (statusFilter==='semua'?'active':'') + '" data-st="semua">Semua</button>' +
       '</div>' +
     '</div>' +
-    '<div class="global-bar" style="padding-top:0">' +
+    '<div class="global-bar pt-0">' +
       '<div class="filter-group" id="role-filters"><span class="filter-label">Sumber role</span>' + roleChipHtml + '</div>' +
     '</div>' +
-    '<p class="text-muted" style="font-size:12px;margin:0 0 12px">Limit approve Finance: <strong>' + F.IDR(LIMIT) + '</strong>. Di bawah limit boleh <em>Setujui (limit)</em> → Disetujui. Di atas hanya Loloskan ke Direktur.</p>' +
+    '<p class="text-muted note-md">Limit approve Finance: <strong>' + F.IDR(LIMIT) + '</strong>. Di bawah limit boleh <em>Setujui (limit)</em> → Disetujui. Di atas hanya Loloskan ke Direktur.</p>' +
     '<article class="card">' +
       '<div class="table-wrap"><table class="data-table">' +
         '<thead><tr><th>ID</th><th>Proyek</th><th>Jenis</th><th class="num">Nilai</th><th>Status</th><th>Role</th><th>Aksi</th></tr></thead>' +
         '<tbody>' + (rows || '<tr><td colspan="7" class="text-muted">Antrian kosong — unit harus mengajukan dulu</td></tr>') + '</tbody>' +
       '</table></div>' +
-    '</article>' +
-    '<div id="return-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:center;justify-content:center">' +
-      '<div class="card" style="width:min(420px,92vw);padding:20px;margin:16px">' +
-        '<h3 style="margin:0 0 8px;font-size:16px">Kembalikan ke unit</h3>' +
-        '<textarea id="return-alasan" rows="3" style="width:100%;box-sizing:border-box;padding:8px;border-radius:6px;border:1px solid var(--border,#ccc);font:inherit" placeholder="Alasan wajib"></textarea>' +
-        '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">' +
-          '<button class="btn btn-ghost btn-sm" id="return-cancel">Batal</button>' +
-          '<button class="btn btn-primary btn-sm" id="return-confirm">Kembalikan</button>' +
-        '</div>' +
-      '</div>' +
-    '</div>';
+    '</article>';
 
     AdhShell.mount({ role: ROLE, title: 'Antrian Review Finance', content: content });
 
@@ -182,11 +178,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     });
     document.querySelectorAll('.btn-return').forEach(function (btn) {
       btn.addEventListener('click', function () { openReturnDrawer([btn.dataset.id]); });
-    });
-    document.getElementById('return-cancel') && document.getElementById('return-cancel').addEventListener('click', closeReturnDrawer);
-    document.getElementById('return-confirm') && document.getElementById('return-confirm').addEventListener('click', confirmReturn);
-    document.getElementById('return-overlay') && document.getElementById('return-overlay').addEventListener('click', function (e) {
-      if (e.target === e.currentTarget) closeReturnDrawer();
     });
   }
   render();

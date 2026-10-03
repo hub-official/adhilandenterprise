@@ -3,8 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Matriks Dokumen Legal — Adhiland Finance</title>
-<script>(function(){try{var t=localStorage.getItem('adh_theme');document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#F4F6FA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B1220" media="(prefers-color-scheme: dark)">
+<title>Matriks Dokumen Legal — Adhiland ERP</title>
+<script>(function(){try{var t=localStorage.getItem('adh_theme');if(t!=='dark'&&t!=='light'){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
 <link rel="stylesheet" href="../assets/css/tokens.css">
 <link rel="stylesheet" href="../assets/css/app.css">
 </head>
@@ -14,6 +17,7 @@
 <script src="../assets/js/fmt.js"></script>
 <script src="../assets/js/theme.js"></script>
 <script src="../assets/js/local-state.js"></script>
+<script src="../assets/js/canonical-data.js"></script>
 <script src="../assets/js/data.js"></script>
 <script src="../assets/js/shell.js"></script>
 <script>
@@ -52,7 +56,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     var key = docKeys[di];
     var current = cellStatus(row._id, di, row[key]);
     var opts = ['todo','progress','overdue','done'].map(function (s) {
-      return '<label style="display:flex;align-items:center;gap:8px;padding:8px 0;cursor:pointer">' +
+      return '<label class="flex align-center gap-8 py-8 cursor-pointer">' +
         '<input type="radio" name="leg-st" value="' + s + '"' + (current===s?' checked':'') + '>' +
         '<span style="display:inline-block;width:14px;height:14px;background:' + colors[s] + ';border-radius:3px"></span> ' +
         labels[s] + '</label>';
@@ -67,10 +71,10 @@ document.addEventListener('DOMContentLoaded', async function () {
             '<button class="btn btn-ghost btn-sm" type="button" id="leg-close">✕</button>' +
           '</div>' +
           '<div class="drawer-body">' +
-            '<p style="font-size:13px;margin-bottom:12px"><strong>' + (row.kavling || row.no) + '</strong> · ' + (row.proyek || '') + '</p>' +
-            '<p class="text-muted" style="font-size:12px;margin-bottom:8px">Nilai asli: ' + (row[key] || '—') + '</p>' +
+            '<p class="fs-13 mb-12"><strong>' + (row.kavling || row.no) + '</strong> · ' + (row.proyek || '') + '</p>' +
+            '<p class="text-muted fs-12 mb-8">Nilai asli: ' + (row[key] || '—') + '</p>' +
             opts +
-            '<p class="text-muted mt-4" style="font-size:11px">Perubahan disimpan di sessionStorage (mock lokal). Refresh tetap mempertahankan status mock.</p>' +
+            '<p class="text-muted mt-4 fs-11">Perubahan disimpan di sessionStorage (mock lokal). Refresh tetap mempertahankan status mock.</p>' +
           '</div>' +
           '<div class="drawer-footer">' +
             '<button class="btn btn-ghost" type="button" id="leg-cancel">Batal</button>' +
@@ -111,7 +115,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         counts[st] = (counts[st] || 0) + 1;
         if (st === 'done') done++;
         var icon = st==='done'?'✓':st==='overdue'?'!':st==='progress'?'⏱':'–';
-        body += '<td style="text-align:center">' +
+        body += '<td class="text-center">' +
           '<button type="button" class="leg-cell" data-row="' + r._id + '" data-di="' + di + '" title="' + labels[st] + ' — klik untuk edit" ' +
           'style="display:inline-block;width:22px;height:22px;background:' + colors[st] + ';border:none;border-radius:3px;font-size:11px;line-height:22px;color:var(--text-on-primary);cursor:pointer">' +
           icon + '</button></td>';
@@ -121,7 +125,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     var html =
       '<div class="global-bar"><span class="filter-label">Matriks Dokumen</span>' +
-      '<span class="text-muted" style="font-size:12px;margin-left:auto">' + legalRows.length + ' baris · klik sel untuk edit (mock lokal)</span></div>' +
+      '<span class="text-muted fs-12 ml-auto">' + legalRows.length + ' baris · klik sel untuk edit (mock lokal)</span></div>' +
       '<section class="kpi-grid">' +
         '<article class="kpi-card"><div class="kpi-label">Kelengkapan</div><div class="kpi-value">' + F.pct(D.LEGAL.pct) + '</div><div class="kpi-sub">' + D.LEGAL.done + '/' + D.LEGAL.target + '</div></article>' +
         '<article class="kpi-card"><div class="kpi-label">Lewat tenggat</div><div class="kpi-value">' + counts.overdue + '</div><div class="kpi-sub">Sel di matriks</div></article>' +
@@ -130,10 +134,10 @@ document.addEventListener('DOMContentLoaded', async function () {
       '</section>' +
       '<article class="card"><div class="card-header"><h3 class="card-title">Heatmap dokumen — klik sel untuk ubah status</h3></div>' +
       '<div class="table-wrap"><table class="data-table"><thead><tr><th>Kavling</th><th>Proyek</th>';
-    docs.forEach(function (d) { html += '<th style="text-align:center">' + d + '</th>'; });
+    docs.forEach(function (d) { html += '<th class="text-center">' + d + '</th>'; });
     html += '<th class="num">%</th></tr></thead><tbody>' + (body || '<tr><td colspan="10" class="text-muted">Tidak ada data legal.json</td></tr>') +
       '</tbody></table></div>' +
-      '<p class="text-muted mt-2" style="font-size:12px">✓ Selesai · ⏱ Berjalan · ! Lewat · – Belum · Override sessionStorage (mock lokal)</p></article>';
+      '<p class="text-muted mt-2 fs-12">✓ Selesai · ⏱ Berjalan · ! Lewat · – Belum · Override sessionStorage (mock lokal)</p></article>';
 
     AdhShell.mount({ role: 'Legal', title: 'Matriks Dokumen Legal', content: html });
 

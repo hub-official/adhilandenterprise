@@ -1,5 +1,5 @@
 /**
- * Adhiland Finance — Unified number & date formatters
+ * Adhiland ERP — Unified number & date formatters
  * Spec: 08_SPEC_INFOGRAFIK.md §3
  * All display numbers MUST go through these functions.
  */

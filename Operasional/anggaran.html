@@ -3,8 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Anggaran Operasional — Adhiland Finance</title>
-<script>(function(){try{var t=localStorage.getItem('adh_theme');document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#F4F6FA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B1220" media="(prefers-color-scheme: dark)">
+<title>Anggaran Operasional — Adhiland ERP</title>
+<script>(function(){try{var t=localStorage.getItem('adh_theme');if(t!=='dark'&&t!=='light'){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
 <link rel="stylesheet" href="../assets/css/tokens.css">
 <link rel="stylesheet" href="../assets/css/app.css">
 </head>
@@ -12,6 +15,7 @@
 <div id="app"></div>
 <script src="../assets/js/fmt.js"></script>
 <script src="../assets/js/theme.js"></script>
+<script src="../assets/js/canonical-data.js"></script>
 <script src="../assets/js/data.js"></script>
 <script src="../assets/js/shell.js"></script>
 <script>
@@ -37,7 +41,7 @@ document.addEventListener('DOMContentLoaded', async function () {
   }).join('');
   const content = `
   <div class="global-bar"><span class="filter-label">Anggaran Operasional</span>
-    <span class="text-muted" style="font-size:12px;margin-left:auto">${list.length} item</span></div>
+    <span class="text-muted fs-12 ml-auto">${list.length} item</span></div>
   <section class="kpi-grid">
     <article class="kpi-card"><div class="kpi-label">Anggaran</div><div class="kpi-value">${F.IDR(anggaran,'compact')}</div></article>
     <article class="kpi-card"><div class="kpi-label">Realisasi</div><div class="kpi-value">${F.IDR(realisasi,'compact')}</div></article>
@@ -49,7 +53,7 @@ document.addEventListener('DOMContentLoaded', async function () {
       <thead><tr><th>Cluster</th><th>Deskripsi</th><th>Jenis</th><th class="num">Rencana</th><th class="num">Terbayar</th><th class="num">Sisa</th><th>Jatuh tempo</th><th>Status</th></tr></thead>
       <tbody>${table||'<tr><td colspan="8" class="text-muted">Tidak ada data</td></tr>'}</tbody>
     </table></div>
-    <p class="text-muted mt-2" style="font-size:12px">Sumber: budgeting_item.json</p>
+    <p class="source-note">Sumber: budgeting_item.json</p>
   </article>`;
   AdhShell.mount({ role: 'Operasional', title: 'Anggaran Operasional', content });
 });

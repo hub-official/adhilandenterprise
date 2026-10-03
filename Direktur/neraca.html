@@ -3,15 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Neraca — Adhiland Finance</title>
-<script>(function(){try{var t=localStorage.getItem('adh_theme');document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#F4F6FA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B1220" media="(prefers-color-scheme: dark)">
+<title>Neraca — Adhiland ERP</title>
+<script>(function(){try{var t=localStorage.getItem('adh_theme');if(t!=='dark'&&t!=='light'){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
 <link rel="stylesheet" href="../assets/css/tokens.css">
 <link rel="stylesheet" href="../assets/css/app.css">
+<script src="../assets/js/vendor/chart.umd.min.js" onerror="(function(){var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js';s.onload=function(){window.dispatchEvent(new Event('chart-ready'));};document.head.appendChild(s);})()"></script>
 </head>
 <body>
 <div id="app"></div>
 <script src="../assets/js/fmt.js"></script>
 <script src="../assets/js/theme.js"></script>
+<script src="../assets/js/canonical-data.js"></script>
 <script src="../assets/js/data.js"></script>
 <script src="../assets/js/shell.js"></script>
 <script>
@@ -48,8 +53,8 @@ document.addEventListener('DOMContentLoaded', async function () {
 
   function rows(list) {
     return list.map(function (a) {
-      var tag = a.src === 'proxy' ? ' <span class="text-muted" style="font-size:10px">(proxy)</span>' : '';
-      return '<tr' + (a.group ? ' style="font-weight:600;background:var(--surface-2)"' : '') + '>' +
+      var tag = a.src === 'proxy' ? ' <span class="text-muted fs-10">(proxy)</span>' : '';
+      return '<tr' + (a.group ? ' class="fw-600 bg-surface-2"' : '') + '>' +
         '<td>' + a.kode + '</td><td>' + a.nama + tag + '</td>' +
         '<td class="num">' + F.IDR(a.saldo, 'compact') + '</td></tr>';
     }).join('');
@@ -58,24 +63,86 @@ document.addEventListener('DOMContentLoaded', async function () {
   var html =
     '<div class="global-bar">' +
       '<span class="filter-label">Neraca ringkas</span>' +
-      '<span class="text-muted" style="font-size:12px;margin-left:auto">Per ' + F.dateTime(D.AS_OF) + ' · tanpa baris dummy invent</span>' +
+      '<span class="text-muted fs-12 ml-auto">Per ' + F.dateTime(D.AS_OF) + ' · tanpa baris dummy invent</span>' +
     '</div>' +
-    '<section class="kpi-grid" style="grid-template-columns:repeat(3,1fr)">' +
+    '<section class="kpi-grid cols-3">' +
       '<article class="kpi-card"><div class="kpi-label">Total Aktiva</div><div class="kpi-value">' + F.IDR(totalAktiva, 'compact') + '</div>' +
         '<div class="kpi-sub">Kas + piutang + stok potensi</div></article>' +
       '<article class="kpi-card"><div class="kpi-label">Kewajiban</div><div class="kpi-value">' + F.IDR(totalKewajiban, 'compact') + '</div></article>' +
       '<article class="kpi-card"><div class="kpi-label">Modal residual</div><div class="kpi-value">' + F.IDR(modalResidual, 'compact') + '</div>' +
         '<div class="kpi-sub">Aktiva − Hutang (proxy balancing)</div></article>' +
     '</section>' +
+    '<article class="card">' +
+      '<div class="card-header"><h3 class="card-title">Komposisi Neraca</h3>' +
+        '<span class="text-muted fs-12">Aktiva vs Kewajiban vs Modal residual</span></div>' +
+      '<div class="chart-container"><canvas id="chart-neraca" role="img" aria-label="Diagram batang komposisi neraca: total aktiva, total kewajiban, dan modal residual">' +
+        'Aktiva ' + F.IDR(totalAktiva, 'compact') + ', kewajiban ' + F.IDR(totalKewajiban, 'compact') + ', modal residual ' + F.IDR(modalResidual, 'compact') + '. Data tersedia pada tabel di bawah.' +
+      '</canvas></div>' +
+    '</article>' +
     '<div class="zone zone-2-6-6">' +
       '<article class="card"><div class="card-header"><h3 class="card-title">Aktiva</h3></div>' +
         '<div class="table-wrap"><table class="data-table"><thead><tr><th>Kode</th><th>Nama</th><th class="num">Saldo</th></tr></thead><tbody>' + rows(aktiva) + '</tbody></table></div></article>' +
       '<article class="card"><div class="card-header"><h3 class="card-title">Kewajiban &amp; Modal</h3></div>' +
         '<div class="table-wrap"><table class="data-table"><thead><tr><th>Kode</th><th>Nama</th><th class="num">Saldo</th></tr></thead><tbody>' + rows(kewajiban) + '</tbody></table></div></article>' +
     '</div>' +
-    '<p class="text-muted mt-2" style="font-size:12px">Sumber snapshot: KAS, LIABILITAS, SALES.sisaTagihan, STOK.potensi. Baris bertanda (proxy) = turunan, bukan akun buku besar penuh. Aktiva tetap / laba ditahan dummy dihapus.</p>';
+    '<p class="source-note">Sumber: KAS, LIABILITAS, SALES.sisaTagihan, STOK.potensi. Baris bertanda (proxy) = turunan, bukan akun buku besar penuh. Aktiva tetap / laba ditahan dummy dihapus.</p>';
 
   AdhShell.mount({ role: 'Direktur', title: 'Neraca', content: html });
+
+  function drawNeraca() {
+    var cv = document.getElementById('chart-neraca');
+    if (!cv || typeof Chart === 'undefined') return;
+    if (cv.offsetParent === null) return;
+    var cs = getComputedStyle(document.documentElement);
+    var gridColor = cs.getPropertyValue('--viz-grid').trim() || 'rgba(128,128,128,.2)';
+    var axisColor = cs.getPropertyValue('--viz-axis').trim() || '#888';
+    var aktivaColor = cs.getPropertyValue('--viz-cash').trim() || '#2563eb';
+    var kewajibanColor = cs.getPropertyValue('--viz-plan').trim() || '#f59e0b';
+    var modalColor = cs.getPropertyValue('--viz-sales').trim() || '#10b981';
+    new Chart(cv, {
+      type: 'bar',
+      data: {
+        labels: ['Total Aktiva', 'Kewajiban', 'Modal residual'],
+        datasets: [{
+          label: 'Nilai',
+          data: [totalAktiva, totalKewajiban, modalResidual],
+          backgroundColor: [aktivaColor, kewajibanColor, modalColor],
+          borderRadius: 4,
+          maxBarThickness: 72
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: function (c) { return F.IDR(c.parsed.y, 'compact'); }
+            }
+          }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: axisColor } },
+          y: {
+            grid: { color: gridColor },
+            ticks: {
+              color: axisColor,
+              callback: function (v) { return F.IDR(v, 'compact'); }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  var tries = 0;
+  (function waitChart() {
+    if (typeof Chart !== 'undefined') { drawNeraca(); return; }
+    if (++tries < 40) setTimeout(waitChart, 50);
+  })();
+  window.addEventListener('chart-ready', drawNeraca);
+  window.addEventListener('orientationchange', function () { setTimeout(drawNeraca, 250); });
 });
 </script>
 </body>

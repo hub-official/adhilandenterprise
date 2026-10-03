@@ -3,15 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Stok & Penjualan — Adhiland Finance</title>
-<script>(function(){try{var t=localStorage.getItem('adh_theme');document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#F4F6FA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B1220" media="(prefers-color-scheme: dark)">
+<title>Stok & Penjualan — Adhiland ERP</title>
+<script>(function(){try{var t=localStorage.getItem('adh_theme');if(t!=='dark'&&t!=='light'){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
 <link rel="stylesheet" href="../assets/css/tokens.css">
 <link rel="stylesheet" href="../assets/css/app.css">
+<script src="../assets/js/vendor/chart.umd.min.js" onerror="(function(){var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js';s.onload=function(){window.dispatchEvent(new Event('chart-ready'));};document.head.appendChild(s);})()"></script>
 </head>
 <body>
 <div id="app"></div>
 <script src="../assets/js/fmt.js"></script>
 <script src="../assets/js/theme.js"></script>
+<script src="../assets/js/canonical-data.js"></script>
 <script src="../assets/js/data.js"></script>
 <script src="../assets/js/shell.js"></script>
 <script src="../assets/js/kavling.js"></script>
@@ -34,7 +39,7 @@ document.addEventListener('DOMContentLoaded', async function () {
   }).join('');
   const content = `
   <div class="global-bar"><span class="filter-label">Stok & Penjualan</span>
-    <span class="text-muted" style="font-size:12px;margin-left:auto">Data per ${F.dateTime(D.AS_OF)}</span></div>
+    <span class="text-muted fs-12 ml-auto">Data per ${F.dateTime(D.AS_OF)}</span></div>
   <section class="kpi-grid">
     <article class="kpi-card"><div class="kpi-label">Stok belum terjual</div><div class="kpi-value">${funnel.belum}</div>
       <div class="kpi-sub">Potensi ${F.IDR(D.STOK.potensi,'compact')}</div></article>
@@ -43,14 +48,62 @@ document.addEventListener('DOMContentLoaded', async function () {
     <article class="kpi-card"><div class="kpi-label">Cash</div><div class="kpi-value">${funnel.cash}</div></article>
   </section>
   <article class="card">
+    <div class="card-header"><h3 class="card-title">Funnel Penjualan</h3>
+      <span class="text-muted fs-12">Belum terjual → Deal → Bertahap → Cash</span></div>
+    <div class="chart-container sm"><canvas id="chart-funnel" role="img" aria-label="Diagram funnel penjualan: belum terjual ${funnel.belum}, deal belum bayar ${funnel.dealBelumBayar}, bertahap ${funnel.bertahap}, cash ${funnel.cash} unit">Funnel penjualan: belum terjual ${funnel.belum}, deal belum bayar ${funnel.dealBelumBayar}, bertahap ${funnel.bertahap}, cash ${funnel.cash}. Data tersedia pada tabel di bawah.</canvas></div>
+  </article>
+  <article class="card">
     <div class="card-header"><h3 class="card-title">Stok per proyek</h3></div>
     <div class="table-wrap"><table class="data-table">
       <thead><tr><th>Proyek</th><th class="num">Belum</th><th class="num">Deal</th><th class="num">Bertahap</th><th class="num">Cash</th></tr></thead>
       <tbody>${rows}</tbody>
     </table></div>
-    <p class="text-muted mt-2" style="font-size:12px">Sumber: kavling_master · funnel konsisten dengan dashboard</p>
+    <p class="source-note">Sumber: kavling_master · funnel konsisten dengan dashboard</p>
   </article>`;
   AdhShell.mount({ role: 'Marketing', title: 'Stok & Penjualan', content });
+
+  function drawFunnel() {
+    var cv = document.getElementById('chart-funnel');
+    if (!cv || typeof Chart === 'undefined') return;
+    if (cv.offsetParent === null) return;
+    var cs = getComputedStyle(document.documentElement);
+    var axisColor = cs.getPropertyValue('--viz-axis').trim() || '#888';
+    var gridColor = cs.getPropertyValue('--viz-grid').trim() || 'rgba(128,128,128,.2)';
+    var c1 = cs.getPropertyValue('--viz-sales').trim() || '#2563eb';
+    var c2 = cs.getPropertyValue('--viz-plan').trim() || '#f59e0b';
+    var c3 = cs.getPropertyValue('--viz-actual').trim() || '#8b5cf6';
+    var c4 = cs.getPropertyValue('--viz-cash').trim() || '#10b981';
+    new Chart(cv, {
+      type: 'bar',
+      data: {
+        labels: ['Belum terjual', 'Deal—belum bayar', 'Bertahap', 'Cash'],
+        datasets: [{
+          label: 'Unit',
+          data: [funnel.belum, funnel.dealBelumBayar, funnel.bertahap, funnel.cash],
+          backgroundColor: [c1, c2, c3, c4],
+          borderRadius: 4,
+          maxBarThickness: 34
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { color: gridColor }, ticks: { color: axisColor, precision: 0 } },
+          y: { grid: { display: false }, ticks: { color: axisColor } }
+        }
+      }
+    });
+  }
+  var tries = 0;
+  (function waitChart() {
+    if (typeof Chart !== 'undefined') { drawFunnel(); return; }
+    if (++tries < 40) setTimeout(waitChart, 50);
+  })();
+  window.addEventListener('chart-ready', drawFunnel);
+  window.addEventListener('orientationchange', function () { setTimeout(drawFunnel, 250); });
 });
 </script>
 </body>

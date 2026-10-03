@@ -3,20 +3,24 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Home Finance — Adhiland</title>
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#F4F6FA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B1220" media="(prefers-color-scheme: dark)">
+<title>Home Finance — Adhiland ERP</title>
 <script>
-(function(){try{var t=localStorage.getItem('adh_theme');
-document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}
+(function(){try{var t=localStorage.getItem('adh_theme');if(t!=='dark'&&t!=='light'){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}
 catch(e){document.documentElement.setAttribute('data-theme','light');}})();
 </script>
 <link rel="stylesheet" href="../assets/css/tokens.css">
 <link rel="stylesheet" href="../assets/css/app.css">
+<script src="../assets/js/vendor/chart.umd.min.js" onerror="(function(){var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js';s.onload=function(){window.dispatchEvent(new Event('chart-ready'));};document.head.appendChild(s);})()"></script>
 </head>
 <body>
 <div id="app"></div>
 <script src="../assets/js/fmt.js"></script>
 <script src="../assets/js/theme.js"></script>
 <script src="../assets/js/local-state.js"></script>
+<script src="../assets/js/canonical-data.js"></script>
 <script src="../assets/js/data.js"></script>
 <script src="../assets/js/shell.js"></script>
 <script>
@@ -28,9 +32,39 @@ document.addEventListener('DOMContentLoaded', async function () {
   const snap = LS.getFinanceSnapshot ? LS.getFinanceSnapshot() : {};
   const limit = LS.LIMIT_APPROVE_FINANCE || 10000000;
 
+  function badge(st) {
+    const s = (st || '').toLowerCase().replace(/_/g, ' ');
+    var cls = 'rag-neutral';
+    if (s === 'menunggu review') cls = 'rag-warn';
+    else if (s === 'disetujui' || s === 'dibayar') cls = 'rag-good';
+    else if (s === 'ditolak' || s === 'dikembalikan') cls = 'rag-bad';
+    return '<span class="status-badge ' + cls + '">' + (st || '—') + '</span>';
+  }
+
+  // Antrian review: item yang masuk ke meja Finance
+  const queue = AdhData.filterPengajuan({}).filter(function (p) {
+    const s = (p.status || '').toLowerCase().replace(/_/g, ' ');
+    return s === 'menunggu review' || s === 'disetujui' || s === 'menunggu direktur';
+  }).slice(0, 40);
+
+  const queueRows = queue.length ? queue.map(function (p) {
+    const over = LS.canFinanceApprove ? LS.canFinanceApprove(p.jumlah) : false;
+    return '<tr>' +
+      '<td>' + (p.id || '—') + '</td>' +
+      '<td>' + (p.proyek || p.cluster || '—') + '</td>' +
+      '<td>' + (p.jenis || '—') + '</td>' +
+      '<td class="num">' + F.IDR(p.jumlah || 0, 'compact') + '</td>' +
+      '<td>' + badge(p.status) + '</td>' +
+      '<td>' + (over ? '<span class="status-badge rag-good">≤ limit</span>' : '<span class="status-badge rag-warn">&gt; limit</span>') + '</td>' +
+      '</tr>';
+  }).join('') : '<tr><td colspan="6" class="text-muted">Tidak ada item pada antrian review</td></tr>';
+
   const content =
-  '<p class="text-muted" style="font-size:12px;margin:0 0 12px">Workspace <strong>Finance</strong> — review kelengkapan/budget, bayar mock. Final kas di atas limit tetap ke Direktur.</p>' +
-  '<section class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">' +
+  '<div class="global-bar">' +
+    '<span class="filter-label">Home Finance</span>' +
+    '<span class="text-muted fs-12 ml-auto">Data per ' + F.dateTime(AdhData.AS_OF) + '</span>' +
+  '</div>' +
+  '<section class="kpi-grid">' +
     '<article class="kpi-card">' +
       '<div class="kpi-label">Antrian review</div>' +
       '<div class="kpi-value">' + (snap.reviewN || 0) + '</div>' +
@@ -49,17 +83,29 @@ document.addEventListener('DOMContentLoaded', async function () {
     '<article class="kpi-card">' +
       '<div class="kpi-label">Limit approve Finance</div>' +
       '<div class="kpi-value">' + F.IDR(limit, 'compact') + '</div>' +
-      '<div class="kpi-sub">≤ limit: boleh Setujui · &gt; limit: Loloskan ke Direktur</div>' +
+      '<div class="kpi-sub">≤ limit: Setujui · &gt; limit: Loloskan ke Direktur</div>' +
     '</article>' +
   '</section>' +
-  '<div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap">' +
-    '<a class="btn btn-primary" href="review.html">Buka Antrian Review</a>' +
-    '<a class="btn btn-ghost" href="siap-bayar.html">Siap Bayar</a>' +
-    '<a class="btn btn-ghost" href="../Direktur/tata-kelola.html">Tata Kelola (Direktur)</a>' +
+  '<div class="zone zone-2-8-4">' +
+    '<article class="card">' +
+      '<div class="card-header"><h3 class="card-title">Antrian review &amp; kewenangan</h3>' +
+        '<div class="card-actions"><a class="btn btn-primary btn-sm" href="review.html">Buka Antrian Review</a>' +
+        '<a class="btn btn-ghost btn-sm" href="siap-bayar.html">Siap Bayar</a></div></div>' +
+      '<div class="table-wrap"><table class="data-table">' +
+        '<thead><tr><th>ID</th><th>Proyek</th><th>Jenis</th><th class="num">Nilai</th><th>Status</th><th>Kewenangan</th></tr></thead>' +
+        '<tbody>' + queueRows + '</tbody>' +
+      '</table></div>' +
+      '<p class="source-note">Sumber: pengajuan.json (filter status review/disetujui) · kewenangan per limit Finance</p>' +
+    '</article>' +
+    '<article class="card">' +
+      '<div class="card-header"><h3 class="card-title">Proyeksi kas 30/60/90 hari</h3></div>' +
+      '<div class="chart-container sm"><canvas id="chart-finance-forecast" role="img" aria-label="Grafik batang proyeksi kas 30, 60, dan 90 hari">Grafik proyeksi kas 30/60/90 hari. Nilai indikatif.</canvas></div>' +
+      '<p class="text-muted mt-2 fs-12">Indikatif — kas dikurangi antrian, komitmen, dan jatuh tempo, ditambah proxy kas masuk.</p>' +
+    '</article>' +
   '</div>' +
-  '<article class="card" style="margin-top:16px">' +
-    '<p style="margin:0;font-size:13px"><strong>Wewenang F6</strong></p>' +
-    '<ul style="margin:8px 0 0;padding-left:18px;font-size:12px;color:var(--text-muted, #666)">' +
+  '<article class="card">' +
+    '<div class="card-header"><h3 class="card-title">Wewenang F6</h3></div>' +
+    '<ul class="text-muted m-0 pl-18 fs-13">' +
       '<li>Review: Loloskan → Menunggu Direktur, atau Kembalikan + alasan</li>' +
       '<li>Jika nominal ≤ ' + F.IDR(limit) + ': tombol <em>Setujui (limit)</em> langsung ke Disetujui</li>' +
       '<li>Tandai dibayar pada item Disetujui (sama F4)</li>' +
@@ -68,6 +114,41 @@ document.addEventListener('DOMContentLoaded', async function () {
   '</article>';
 
   AdhShell.mount({ role: ROLE, title: 'Home Finance', content: content });
+
+  function drawForecast() {
+    var cv = document.getElementById('chart-finance-forecast');
+    if (!cv || typeof Chart === 'undefined') return;
+    var css = getComputedStyle(document.documentElement);
+    var grid = css.getPropertyValue('--viz-grid').trim();
+    var axis = css.getPropertyValue('--viz-axis').trim();
+    var cash = css.getPropertyValue('--viz-cash').trim();
+    new Chart(cv, {
+      type: 'bar',
+      data: {
+        labels: ['30 hari', '60 hari', '90 hari'],
+        datasets: [{
+          label: 'Proyeksi kas',
+          data: [snap.forecast30 || 0, snap.forecast60 || 0, snap.forecast90 || 0],
+          backgroundColor: [cash, cash, cash],
+          borderRadius: 4
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: function (c) { return F.IDR(c.parsed.y, 'compact'); } } }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: axis } },
+          y: { grid: { color: grid }, ticks: { color: axis, callback: function (v) { return F.IDR(v, 'compact'); } } }
+        }
+      }
+    });
+  }
+  requestAnimationFrame(drawForecast);
+  window.addEventListener('themechange', function () { requestAnimationFrame(function () { location.reload(); }); });
+  window.addEventListener('chart-ready', function () { requestAnimationFrame(drawForecast); });
 });
 </script>
 </body>

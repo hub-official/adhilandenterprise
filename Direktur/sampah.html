@@ -3,8 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Tempat Sampah — Adhiland Finance</title>
-<script>(function(){try{var t=localStorage.getItem('adh_theme');document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#F4F6FA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B1220" media="(prefers-color-scheme: dark)">
+<title>Tempat Sampah — Adhiland ERP</title>
+<script>(function(){try{var t=localStorage.getItem('adh_theme');if(t!=='dark'&&t!=='light'){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
 <link rel="stylesheet" href="../assets/css/tokens.css">
 <link rel="stylesheet" href="../assets/css/app.css">
 </head>
@@ -12,20 +15,49 @@
 <div id="app"></div>
 <script src="../assets/js/fmt.js"></script>
 <script src="../assets/js/theme.js"></script>
+<script src="../assets/js/canonical-data.js"></script>
 <script src="../assets/js/data.js"></script>
 <script src="../assets/js/shell.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', async function () {
   if (window.AdhData && AdhData.load) await AdhData.load();
-  var rows = '';
-  for (var i=1;i<=10;i++) {
-    rows += '<tr><td>'+i+'</td><td>Pengajuan dihapus (dummy) #'+i+'</td><td>12 Sep 2026</td><td>Direktur</td><td><button class="btn btn-secondary btn-sm">Pulihkan (mock)</button> <button class="btn btn-ghost btn-sm">Hapus permanen (mock)</button></td></tr>';
+
+  // Sumber data belum tersedia pada snapshot: tampilkan empty state yang jujur,
+  // bukan baris dummy. Bila kelak ada dataset trash, ganti `items` di bawah.
+  var items = (window.AdhData && Array.isArray(AdhData.TRASH)) ? AdhData.TRASH : [];
+
+  var body;
+  if (items.length) {
+    body = items.map(function (it, idx) {
+      return '<tr>' +
+        '<td>' + (idx + 1) + '</td>' +
+        '<td>' + (it.deskripsi || '—') + '</td>' +
+        '<td>' + (it.dihapus || '—') + '</td>' +
+        '<td>' + (it.oleh || '—') + '</td>' +
+        '<td><button class="btn btn-secondary btn-sm" data-restore="' + (it.id || idx) + '">Pulihkan</button> ' +
+        '<button class="btn btn-ghost btn-sm" data-purge="' + (it.id || idx) + '">Hapus permanen</button></td>' +
+        '</tr>';
+    }).join('');
+  } else {
+    body = '<tr><td colspan="5"><div class="empty-state">' +
+      '<span class="empty-title">Tempat sampah kosong</span>' +
+      '<span class="empty-sub">Belum ada item terhapus pada snapshot data ini. Fitur restore/purge akan aktif setelah dataset trash tersedia.</span>' +
+      '</div></td></tr>';
   }
-  var html = '<div class="global-bar"><span class="filter-label">Tempat Sampah</span></div>';
+
+  var html = '<div class="global-bar"><span class="filter-label">Tempat Sampah</span>' +
+    '<span class="text-muted fs-12 ml-auto">' + items.length + ' item</span></div>';
   html += '<article class="card"><div class="card-header"><h3 class="card-title">Item terhapus (tanpa kunci teknis mentah)</h3></div>';
-  html += '<div class="table-wrap"><table class="data-table"><thead><tr><th>#</th><th>Deskripsi</th><th>Dihapus</th><th>Oleh</th><th>Aksi</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
-  html += '<p class="text-muted mt-2" style="font-size:12px">Kolom teknis (fund_request, dll.) tidak ditampilkan \u2014 diganti deskripsi manusiawi</p></article>';
+  html += '<div class="table-wrap"><table class="data-table"><thead><tr><th>#</th><th>Deskripsi</th><th>Dihapus</th><th>Oleh</th><th>Aksi</th></tr></thead><tbody>' + body + '</tbody></table></div>';
+  html += '<p class="text-muted mt-2 fs-12">Kolom teknis (fund_request, dll.) tidak ditampilkan — diganti deskripsi manusiawi</p></article>';
   AdhShell.mount({ role: 'Direktur', title: 'Tempat Sampah', content: html });
+
+  document.querySelectorAll('[data-restore],[data-purge]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var purge = btn.hasAttribute('data-purge');
+      AdhShell.showToast(purge ? 'Hapus permanen belum tersedia di mockup' : 'Pulihkan belum tersedia di mockup', 'warn');
+    });
+  });
 });
 </script>
 </body>

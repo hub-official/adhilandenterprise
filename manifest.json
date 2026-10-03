@@ -1,0 +1,26 @@
+{
+  "name": "Adhiland ERP — Finance & Property",
+  "short_name": "Adhiland ERP",
+  "description": "Mockup ERP Adhiland: dashboard eksekutif, finance, marketing, legal, teknik, dan operasional.",
+  "lang": "id",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#F4F6FA",
+  "theme_color": "#3F58A4",
+  "icons": [
+    {
+      "src": "assets/img/Adhiland-transparent.png",
+      "sizes": "600x454",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/img/Adhiland-white.png",
+      "sizes": "1443x1090",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

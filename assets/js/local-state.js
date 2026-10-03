@@ -420,10 +420,15 @@
     if (!host) {
       host = document.createElement('div');
       host.className = 'toast-host';
+      host.setAttribute('role', 'status');
+      host.setAttribute('aria-live', 'polite');
+      host.setAttribute('aria-atomic', 'true');
+      host.setAttribute('aria-label', 'Notifikasi');
       document.body.appendChild(host);
     }
     var el = document.createElement('div');
     el.className = 'toast toast-' + kind;
+    el.setAttribute('role', 'status');
     el.textContent = msg;
     host.appendChild(el);
     setTimeout(function () {

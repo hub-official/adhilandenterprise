@@ -3,10 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Review Finance — Adhiland Finance</title>
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#F4F6FA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B1220" media="(prefers-color-scheme: dark)">
+<title>Review Finance — Adhiland ERP</title>
 <script>
-(function(){try{var t=localStorage.getItem('adh_theme');
-document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}
+(function(){try{var t=localStorage.getItem('adh_theme');if(t!=='dark'&&t!=='light'){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}
 catch(e){document.documentElement.setAttribute('data-theme','light');}})();
 </script>
 <link rel="stylesheet" href="../assets/css/tokens.css">
@@ -17,6 +19,7 @@ catch(e){document.documentElement.setAttribute('data-theme','light');}})();
 <script src="../assets/js/fmt.js"></script>
 <script src="../assets/js/theme.js"></script>
 <script src="../assets/js/local-state.js"></script>
+<script src="../assets/js/canonical-data.js"></script>
 <script src="../assets/js/data.js"></script>
 <script src="../assets/js/shell.js"></script>
 <script>
@@ -69,10 +72,10 @@ document.addEventListener('DOMContentLoaded', async function () {
       var sisa = anggaran - realisasi;
       if (!anggaran || !p.jumlah) return '';
       if (p.jumlah > sisa && sisa >= 0) {
-        return '<span class="text-muted" style="font-size:10px;color:var(--danger,#c00)" title="Indikatif: melebihi sisa anggaran agregat">⚠ &gt; sisa anggaran</span>';
+        return '<span class="text-muted fs-10 c-danger"  title="Indikatif: melebihi sisa anggaran agregat">⚠ &gt; sisa anggaran</span>';
       }
       if (anggaran > 0 && p.jumlah > anggaran * 0.2) {
-        return '<span class="text-muted" style="font-size:10px" title="Indikatif: &gt;20% anggaran agregat">⚠ besar</span>';
+        return '<span class="text-muted fs-10"  title="Indikatif: &gt;20% anggaran agregat">⚠ besar</span>';
       }
     } catch (e) {}
     return '';
@@ -80,34 +83,29 @@ document.addEventListener('DOMContentLoaded', async function () {
 
   function openReturnDrawer(ids) {
     returnTarget = { ids: ids.slice() };
-    var overlay = document.getElementById('return-overlay');
-    var input = document.getElementById('return-alasan');
-    if (input) input.value = '';
-    if (overlay) {
-      overlay.style.display = 'flex';
-      setTimeout(function () { input && input.focus(); }, 50);
-    }
-  }
-
-  function closeReturnDrawer() {
-    returnTarget = null;
-    var overlay = document.getElementById('return-overlay');
-    if (overlay) overlay.style.display = 'none';
-  }
-
-  function confirmReturn() {
-    var input = document.getElementById('return-alasan');
-    var alasan = (input && input.value || '').trim();
-    if (!alasan) {
-      LS.showToast('Alasan pengembalian wajib diisi', 'warn');
-      if (input) input.focus();
-      return;
-    }
-    if (!returnTarget || !returnTarget.ids.length) return;
-    LS.setPengajuanStatusBulk(returnTarget.ids, 'Dikembalikan', alasan);
-    closeReturnDrawer();
-    LS.showToast('Dikembalikan ke unit (mock lokal): ' + returnTarget.ids.length + ' item', 'info');
-    render();
+    var d = AdhShell.openDrawer({
+      id: 'return-drawer',
+      title: 'Kembalikan ke unit' + (ids.length > 1 ? ' (' + ids.length + ' item)' : ''),
+      body: '<p class="text-muted note-md">Alasan pengembalian wajib diisi (disimpan mock lokal).</p>' +
+            '<label class="form-label" for="return-alasan">Alasan</label>' +
+            '<textarea id="return-alasan" class="form-input textarea-auto" rows="4"  placeholder="Contoh: dokumen belum lengkap / budget tidak sesuai"></textarea>',
+      footer: '<button class="btn btn-ghost" data-drawer-close type="button">Batal</button>' +
+              '<button class="btn btn-primary" id="return-confirm" type="button">Kembalikan</button>'
+    });
+    var input = d.el.querySelector('#return-alasan');
+    if (input) setTimeout(function () { input.focus(); }, 60);
+    var btn = d.el.querySelector('#return-confirm');
+    if (btn) btn.addEventListener('click', function () {
+      var alasan = (input && input.value || '').trim();
+      if (!alasan) { LS.showToast('Alasan pengembalian wajib diisi', 'warn'); if (input) input.focus(); return; }
+      if (!returnTarget || !returnTarget.ids.length) return;
+      var n = returnTarget.ids.length;
+      LS.setPengajuanStatusBulk(returnTarget.ids, 'Dikembalikan', alasan);
+      returnTarget = null;
+      d.close();
+      LS.showToast('Dikembalikan ke unit (mock lokal): ' + n + ' item', 'info');
+      render();
+    });
   }
 
   function filterList() {
@@ -143,16 +141,16 @@ document.addEventListener('DOMContentLoaded', async function () {
     var rows = list.map(function (p) {
       var can = isReviewQueue(p);
       var mockTag = (hasOverride(p.id) || p._mockCreated)
-        ? ' <span class="text-muted" style="font-size:10px">(mock lokal)</span>' : '';
+        ? ' <span class="text-muted fs-10">(mock lokal)</span>' : '';
       var alasan = getAlasan(p.id) || p.alasan;
       var alasanTip = alasan
-        ? ' <span class="text-muted" style="font-size:10px" title="' + String(alasan).replace(/"/g, '&quot;') + '">· alasan</span>'
+        ? ' <span class="text-muted fs-10"  title="' + String(alasan).replace(/"/g, '&quot;') + '">· alasan</span>'
         : '';
       var hint = budgetHint(p);
       var actions = can
         ? '<button class="btn btn-primary btn-sm btn-pass" data-id="' + p.id + '">Loloskan</button> ' +
           '<button class="btn btn-ghost btn-sm btn-return" data-id="' + p.id + '">Kembalikan</button>'
-        : '<span class="text-muted" style="font-size:11px">—</span>';
+        : '<span class="text-muted fs-11">—</span>';
       return '<tr>' +
         '<td>' + p.id + '</td>' +
         '<td>' + (p.proyek || p.cluster || '—') + ' ' + hint + '</td>' +
@@ -160,11 +158,11 @@ document.addEventListener('DOMContentLoaded', async function () {
         '<td class="num">' + F.IDR(p.jumlah) + '</td>' +
         '<td>' + statusBadge(p.status) + mockTag + alasanTip + '</td>' +
         '<td>' + (p.pemohon || '—') + '</td>' +
-        '<td class="text-muted" style="font-size:11px">' + (p.sumberRole || '') + '</td>' +
-        '<td style="max-width:160px;font-size:11px" class="text-muted">' +
+        '<td class="text-muted fs-11">' + (p.sumberRole || '') + '</td>' +
+        '<td class="text-muted maxw-160 fs-11">' +
           (p.keperluan ? (String(p.keperluan).length > 48 ? String(p.keperluan).slice(0, 48) + '…' : p.keperluan) : '—') +
         '</td>' +
-        '<td style="white-space:nowrap">' + actions + '</td>' +
+        '<td class="nowrap">' + actions + '</td>' +
         '</tr>';
     }).join('');
 
@@ -174,7 +172,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     }).join('');
 
     var content =
-    '<div class="global-bar" style="flex-wrap:wrap;gap:8px">' +
+    '<div class="global-bar wrap gap-8">' +
       '<div class="filter-group" id="st-filters">' +
         '<span class="filter-label">Status</span>' +
         '<button class="chip ' + (statusFilter==='menunggu review'?'active':'') + '" data-st="menunggu review">Antrian review (' + nReview + ')</button>' +
@@ -183,14 +181,14 @@ document.addEventListener('DOMContentLoaded', async function () {
         '<button class="chip ' + (statusFilter==='semua'?'active':'') + '" data-st="semua">Semua</button>' +
       '</div>' +
     '</div>' +
-    '<div class="global-bar" style="padding-top:0">' +
+    '<div class="global-bar pt-0">' +
       '<div class="filter-group" id="role-filters">' +
         '<span class="filter-label">Sumber role</span>' +
         roleChipHtml +
       '</div>' +
     '</div>' +
-    '<p class="text-muted" style="font-size:12px;margin:0 0 12px">Review kelengkapan &amp; budget (mock). <strong>Loloskan</strong> → antrian Direktur · <strong>Kembalikan</strong> → unit revisi. Final kas tetap di Direktur.</p>' +
-    '<section class="kpi-grid" style="grid-template-columns:repeat(2,1fr)">' +
+    '<p class="text-muted note-md">Review kelengkapan &amp; budget (mock). <strong>Loloskan</strong> → antrian Direktur · <strong>Kembalikan</strong> → unit revisi. Final kas tetap di Direktur.</p>' +
+    '<section class="kpi-grid cols-2">' +
       '<article class="kpi-card">' +
         '<div class="kpi-label">Menunggu review Finance</div>' +
         '<div class="kpi-value">' + nReview + '</div>' +
@@ -207,20 +205,8 @@ document.addEventListener('DOMContentLoaded', async function () {
         '<thead><tr><th>ID</th><th>Proyek</th><th>Jenis</th><th class="num">Nilai</th><th>Status</th><th>Pemohon</th><th>Role</th><th>Keperluan</th><th>Aksi</th></tr></thead>' +
         '<tbody>' + (rows || '<tr><td colspan="9" class="text-muted">Tidak ada data di antrian review — ajukan dari unit (status Menunggu review)</td></tr>') + '</tbody>' +
       '</table></div>' +
-      '<p class="text-muted mt-2" style="font-size:12px">' + list.length + ' baris · Loloskan/Kembalikan = mock lokal (sessionStorage)</p>' +
-    '</article>' +
-    '<div id="return-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:center;justify-content:center">' +
-      '<div class="card" style="width:min(420px,92vw);padding:20px;margin:16px">' +
-        '<h3 style="margin:0 0 8px;font-size:16px">Kembalikan ke unit</h3>' +
-        '<p class="text-muted" style="font-size:12px;margin:0 0 12px">Alasan wajib (unit akan melihat status Dikembalikan).</p>' +
-        '<label style="display:block;font-size:12px;margin-bottom:4px">Alasan</label>' +
-        '<textarea id="return-alasan" rows="3" style="width:100%;box-sizing:border-box;padding:8px;border-radius:6px;border:1px solid var(--border,#ccc);font:inherit" placeholder="Contoh: lampiran kurang / nominal tidak sesuai budget"></textarea>' +
-        '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">' +
-          '<button class="btn btn-ghost btn-sm" id="return-cancel">Batal</button>' +
-          '<button class="btn btn-primary btn-sm" id="return-confirm">Kembalikan</button>' +
-        '</div>' +
-      '</div>' +
-    '</div>';
+      '<p class="text-muted mt-2 fs-12">' + list.length + ' baris · Loloskan/Kembalikan = mock lokal (sessionStorage)</p>' +
+    '</article>';
 
     AdhShell.mount({ role: ROLE, title: 'Review Finance', content: content });
 
@@ -239,11 +225,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     });
     document.querySelectorAll('.btn-return').forEach(function (btn) {
       btn.addEventListener('click', function () { openReturnDrawer([btn.dataset.id]); });
-    });
-    document.getElementById('return-cancel') && document.getElementById('return-cancel').addEventListener('click', closeReturnDrawer);
-    document.getElementById('return-confirm') && document.getElementById('return-confirm').addEventListener('click', confirmReturn);
-    document.getElementById('return-overlay') && document.getElementById('return-overlay').addEventListener('click', function (e) {
-      if (e.target === e.currentTarget) closeReturnDrawer();
     });
   }
   render();

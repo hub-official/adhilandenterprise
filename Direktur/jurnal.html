@@ -3,8 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Jurnal — Adhiland Finance</title>
-<script>(function(){try{var t=localStorage.getItem('adh_theme');document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#F4F6FA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B1220" media="(prefers-color-scheme: dark)">
+<title>Jurnal — Adhiland ERP</title>
+<script>(function(){try{var t=localStorage.getItem('adh_theme');if(t!=='dark'&&t!=='light'){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
 <link rel="stylesheet" href="../assets/css/tokens.css">
 <link rel="stylesheet" href="../assets/css/app.css">
 </head>
@@ -12,6 +15,7 @@
 <div id="app"></div>
 <script src="../assets/js/fmt.js"></script>
 <script src="../assets/js/theme.js"></script>
+<script src="../assets/js/canonical-data.js"></script>
 <script src="../assets/js/data.js"></script>
 <script src="../assets/js/shell.js"></script>
 <script>
@@ -52,13 +56,13 @@ document.addEventListener('DOMContentLoaded', async function () {
     const content = `
     <div class="global-bar">
       <div class="filter-group">
-        <input class="form-input" id="search-jurnal" style="width:200px;height:32px" placeholder="Cari ref/uraian" value="${search}">
+        <input class="form-input w-200 h-32" id="search-jurnal"  placeholder="Cari ref/uraian" value="${search}">
       </div>
-      <div class="filter-group" style="margin-left:auto">
+      <div class="filter-group ml-auto">
         <button class="btn btn-secondary btn-sm">Export Excel</button>
       </div>
     </div>
-    <section class="kpi-grid" style="grid-template-columns:repeat(3,1fr)">
+    <section class="kpi-grid cols-3">
       <article class="kpi-card"><div class="kpi-label">Total baris</div><div class="kpi-value">${filtered.length.toLocaleString('id-ID')}</div></article>
       <article class="kpi-card"><div class="kpi-label">Jumlah (halaman filter)</div><div class="kpi-value">${F.IDR(totalJumlah,'compact')}</div></article>
       <article class="kpi-card"><div class="kpi-label">Halaman</div><div class="kpi-value">${pg.page} / ${pg.pages}</div><div class="kpi-sub">${size} baris/halaman</div></article>
@@ -69,8 +73,8 @@ document.addEventListener('DOMContentLoaded', async function () {
         <thead><tr><th>Proyek</th><th>Tanggal</th><th>Tipe</th><th>Ref</th><th>Deskripsi</th><th>Akun DB</th><th>Akun KR</th><th class="num">Jumlah</th></tr></thead>
         <tbody>${rows || '<tr><td colspan="8">Tidak ada data</td></tr>'}</tbody>
       </table></div>
-      <div class="flex-between mt-3" style="align-items:center">
-        <p class="text-muted" style="font-size:12px">Sumber: jurnal.csv · ${report.total||allRows.length} baris total</p>
+      <div class="flex-between mt-3 align-center">
+        <p class="source-note">Sumber: jurnal.csv · ${report.total||allRows.length} baris total</p>
         <div class="flex gap-2">
           <button class="btn btn-secondary btn-sm" id="prev-page" ${page<=1?'disabled':''}>← Prev</button>
           <button class="btn btn-secondary btn-sm" id="next-page" ${page>=pg.pages?'disabled':''}>Next →</button>
@@ -79,8 +83,8 @@ document.addEventListener('DOMContentLoaded', async function () {
     </article>`;
     AdhShell.mount({ role: 'Direktur', title: 'Jurnal', content: content });
 
-    document.getElementById('prev-page')?.addEventListener('click', () => { page--; render(); });
-    document.getElementById('next-page')?.addEventListener('click', () => { page++; render(); });
+    document.getElementById('prev-page')&&document.getElementById('prev-page').addEventListener('click', () => { page--; render(); });
+    document.getElementById('next-page')&&document.getElementById('next-page').addEventListener('click', () => { page++; render(); });
     const searchEl = document.getElementById('search-jurnal');
     if (searchEl) {
       searchEl.addEventListener('keydown', e => {

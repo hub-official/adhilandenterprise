@@ -3,10 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Detail Kavling — Adhiland Finance</title>
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#F4F6FA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B1220" media="(prefers-color-scheme: dark)">
+<title>Detail Kavling — Adhiland ERP</title>
 <script>
-(function(){try{var t=localStorage.getItem('adh_theme');
-document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}
+(function(){try{var t=localStorage.getItem('adh_theme');if(t!=='dark'&&t!=='light'){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}
 catch(e){document.documentElement.setAttribute('data-theme','light');}})();
 </script>
 <link rel="stylesheet" href="../assets/css/tokens.css">
@@ -16,6 +18,7 @@ catch(e){document.documentElement.setAttribute('data-theme','light');}})();
 <div id="app"></div>
 <script src="../assets/js/fmt.js"></script>
 <script src="../assets/js/theme.js"></script>
+<script src="../assets/js/canonical-data.js"></script>
 <script src="../assets/js/data.js"></script>
 <script src="../assets/js/shell.js"></script>
 <script src="../assets/js/kavling.js"></script>
@@ -58,9 +61,9 @@ document.addEventListener('DOMContentLoaded', async function () {
   const content = `
   <div class="global-bar">
     <a class="btn btn-ghost btn-sm" href="kavling.html">← Kembali</a>
-    <span class="filter-label" style="margin-left:8px">${k.kavling || k.code} · ${k.proyek}</span>
+    <span class="filter-label ml-8">${k.kavling || k.code} · ${k.proyek}</span>
     ${K.statusBadge(k.status)}
-    <div class="filter-group" style="margin-left:auto"><button class="btn btn-secondary btn-sm">Export</button></div>
+    <div class="filter-group ml-auto"><button class="btn btn-secondary btn-sm">Export</button></div>
   </div>
   <section class="kpi-grid">
     <article class="kpi-card"><div class="kpi-label">Harga Deal / PPJB</div><div class="kpi-value">${F.IDR(k.hargaDeal||k.hargaDaftar,'compact')}</div></article>
@@ -68,7 +71,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     <article class="kpi-card"><div class="kpi-label">Sisa Tagihan</div><div class="kpi-value">${F.IDR(k.sisa,'compact')}</div></article>
     <article class="kpi-card"><div class="kpi-label">Progres Konstruksi</div><div class="kpi-value">${(k.progresBangun||0).toFixed(0)}%</div></article>
   </section>
-  <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap" id="tabs">
+  <div class="toolbar-row" id="tabs">
     <button type="button" class="btn btn-secondary btn-sm tab-btn active" data-tab="ringkasan">Ringkasan</button>
     <button type="button" class="btn btn-ghost btn-sm tab-btn" data-tab="bayar">Pembayaran</button>
     <button type="button" class="btn btn-ghost btn-sm tab-btn" data-tab="konstruksi">Konstruksi</button>
@@ -115,8 +118,8 @@ document.addEventListener('DOMContentLoaded', async function () {
         <tr><td class="text-muted">Masa Retensi</td><td>${k.masaRetensi||'—'} hari</td></tr>
         <tr><td class="text-muted">Adendum</td><td class="num">${F.IDR(k.adendum)}</td></tr>
       </tbody></table></div>
-      ${progItems.length ? `<h4 class="mt-4">Riwayat progres</h4><ul style="list-style:none">${progItems.map(p =>
-        `<li style="padding:6px 0;border-bottom:1px solid var(--border)">${p.Tanggal||p.tanggal||''} — ${p.Persentase||p.persentase||0}% (${p['Dicatat oleh']||p.dicatat||'—'})</li>`
+      ${progItems.length ? `<h4 class="mt-4">Riwayat progres</h4><ul class="list-none">${progItems.map(p =>
+        `<li class="py-6 border-b">${p.Tanggal||p.tanggal||''} — ${p.Persentase||p.persentase||0}% (${p['Dicatat oleh']||p.dicatat||'—'})</li>`
       ).join('')}</ul>` : ''}
     </article>`)}
   ${panel('furnitur', `
@@ -145,10 +148,10 @@ document.addEventListener('DOMContentLoaded', async function () {
   ${panel('riwayat', `
     <article class="card">
       <div class="card-header"><h3 class="card-title">Riwayat</h3></div>
-      <ul style="list-style:none;font-size:13px">
-        <li style="padding:8px 0;border-bottom:1px solid var(--border)">02 Okt 2026 — Data dimuat dari extract database</li>
-        ${k.tglPpjb ? `<li style="padding:8px 0;border-bottom:1px solid var(--border)">${k.tglPpjb} — PPJB / status: ${k.statusRaw||k.status}</li>` : ''}
-        ${k.tglTerjual ? `<li style="padding:8px 0">${k.tglTerjual} — Tanggal terjual</li>` : ''}
+      <ul class="list-none fs-13">
+        <li class="py-8 border-b">02 Okt 2026 — Data dimuat dari extract database</li>
+        ${k.tglPpjb ? `<li class="py-8 border-b">${k.tglPpjb} — PPJB / status: ${k.statusRaw||k.status}</li>` : ''}
+        ${k.tglTerjual ? `<li class="py-8">${k.tglTerjual} — Tanggal terjual</li>` : ''}
       </ul>
     </article>`)}
   `;

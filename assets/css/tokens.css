@@ -1,4 +1,4 @@
-/* Adhiland Finance Design Tokens — ONLY place allowed to contain #hex values */
+/* Adhiland ERP Design Tokens — ONLY place allowed to contain #hex values */
 :root,
 :root[data-theme="light"] {
   color-scheme: light;
@@ -15,6 +15,7 @@
   --text-muted: #556277;
   --text-subtle: #6B778C;
   --text-on-primary: #FFFFFF;
+  --text-on-danger: #FFFFFF;
   /* Brand */
   --primary: #3F58A4;
   --primary-hover: #324789;
@@ -78,6 +79,7 @@
   --text-muted: #9AA8C2;
   --text-subtle: #8392AE;
   --text-on-primary: #0B1220;
+  --text-on-danger: #FFFFFF;
   --primary: #8FA6EA;
   --primary-hover: #A9BAF0;
   --primary-soft: #1C2748;
@@ -139,11 +141,31 @@
   --sp-6: 32px;
   --sp-7: 48px;
   --sidebar-w: 248px;
-  --sidebar-w-collapsed: 0px;
+  --sidebar-w-collapsed: 64px;
   --topbar-h: 56px;
   --row-h-compact: 36px;
   --row-h: 44px;
+  --touch-target-min: 44px;
   --ease: cubic-bezier(.2,.0,.0,1);
   --dur-1: 120ms;
   --dur-2: 200ms;
+  /* Safe area (iPhone notch / home indicator) */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  /* Z-index scale */
+  --z-base: 1;
+  --z-sticky: 10;
+  --z-topbar: 30;
+  --z-sidebar: 40;
+  --z-popover: 60;
+  --z-backdrop: 70;
+  --z-mobile-sidebar: 80;
+  --z-drawer-overlay: 100;
+  --z-drawer: 101;
+  --z-toast: 200;
+  --z-modal-overlay: 300;
+  --z-modal: 301;
+  --z-skip: 9999;
 }

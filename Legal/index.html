@@ -3,10 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Home Legal — Adhiland Finance</title>
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#F4F6FA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B1220" media="(prefers-color-scheme: dark)">
+<title>Home Legal — Adhiland ERP</title>
 <script>
-(function(){try{var t=localStorage.getItem('adh_theme');
-document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}
+(function(){try{var t=localStorage.getItem('adh_theme');if(t!=='dark'&&t!=='light'){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}
 catch(e){document.documentElement.setAttribute('data-theme','light');}})();
 </script>
 <link rel="stylesheet" href="../assets/css/tokens.css">
@@ -16,6 +18,7 @@ catch(e){document.documentElement.setAttribute('data-theme','light');}})();
 <div id="app"></div>
 <script src="../assets/js/fmt.js"></script>
 <script src="../assets/js/theme.js"></script>
+<script src="../assets/js/canonical-data.js"></script>
 <script src="../assets/js/data.js"></script>
 <script src="../assets/js/shell.js"></script>
 <script>
@@ -23,34 +26,76 @@ document.addEventListener('DOMContentLoaded', async function () {
   await AdhData.load();
   const D = AdhData, F = fmt;
 
-  // Hitung kavling yang belum punya AJB dari legal.json
-  let butuhAjb = D.LEGAL.target - D.LEGAL.done; // fallback
+  const DOCS = [['slf','SLF'],['bast','BAST'],['ajb','AJB'],['bphtb','BPHTB'],['pph','PPH'],['balikNama','Balik Nama'],['shgb','SHGB']];
+  const STATE_COLOR = { done:'var(--hm-done)', progress:'var(--hm-progress)', todo:'var(--hm-todo)', overdue:'var(--hm-overdue)' };
+  const STATE_LABEL = { done:'selesai', progress:'proses', todo:'belum', overdue:'terlambat' };
+
+  function cellState(v) {
+    const s = String(v == null ? '' : v).trim();
+    if (s.indexOf('✓') >= 0) return 'done';
+    if (s) return 'progress';
+    return 'todo';
+  }
+
+  let legalRows = [];
   try {
-    const legalRaw = await D.loadReport('legal');
-    const legalRows = Array.isArray(legalRaw) ? legalRaw : (legalRaw.rows || []);
-    if (legalRows.length) {
-      butuhAjb = legalRows.filter(function (r) {
-        const v = (r.ajb || '').toString().trim();
-        return !v || v.indexOf('✓') < 0;
-      }).length;
-    }
-  } catch (e) { /* keep fallback */ }
+    const raw = await D.loadReport('legal');
+    legalRows = Array.isArray(raw) ? raw : (raw.rows || []);
+  } catch (e) { legalRows = []; }
+
+  const enriched = legalRows.map(function (r) {
+    const states = {};
+    let done = 0;
+    DOCS.forEach(function (d) { states[d[0]] = cellState(r[d[0]]); if (states[d[0]] === 'done') done++; });
+    return { proyek: r.proyek || '—', kavling: r.kavling || '—', states: states, done: done, missing: DOCS.length - done };
+  });
+
+  const totalDocs = enriched.length * DOCS.length;
+  const doneDocs = enriched.reduce(function (s, r) { return s + r.done; }, 0);
+  const pct = totalDocs ? doneDocs / totalDocs : 0;
+
+  // Antrian prioritas: kavling dengan dokumen belum selesai terbanyak
+  const priority = enriched.slice().sort(function (a, b) { return b.missing - a.missing; }).slice(0, 6);
+  const butuhAjb = enriched.filter(function (r) { return r.states.ajb !== 'done'; }).length;
+
+  const priorityRows = priority.length ? priority.map(function (r) {
+    const firstMissing = DOCS.find(function (d) { return r.states[d[0]] !== 'done'; }) || DOCS[0];
+    const st = r.states[firstMissing[0]];
+    const cls = st === 'progress' ? 'rag-warn' : 'rag-info';
+    const label = st === 'progress' ? 'Proses' : 'Belum';
+    return '<tr>' +
+      '<td><a href="dokumen.html">' + r.kavling + '</a></td>' +
+      '<td>' + r.proyek + '</td>' +
+      '<td>' + firstMissing[1] + '</td>' +
+      '<td><span class="status-badge ' + cls + '">' + label + '</span></td>' +
+      '<td class="num">' + r.missing + ' / ' + DOCS.length + '</td>' +
+      '</tr>';
+  }).join('') : '<tr><td colspan="5" class="text-muted">Tidak ada data dokumen</td></tr>';
+
+  const heatHead = '<div class="text-muted text-left">Kavling</div>' + DOCS.map(function (d) { return '<div class="text-muted">' + d[1] + '</div>'; }).join('');
+  const heatRows = priority.length ? priority.map(function (r) {
+    return '<div class="fw-500 text-left overflow-hidden ellipsis">' + r.kavling + '</div>' +
+      DOCS.map(function (d) {
+        const st = r.states[d[0]];
+        return '<span role="img" aria-label="' + r.kavling + ' ' + d[1] + ': ' + STATE_LABEL[st] + '" title="' + r.kavling + ' · ' + d[1] + ' — ' + STATE_LABEL[st] + '" style="height:20px;background:' + STATE_COLOR[st] + ';border-radius:3px;display:block"></span>';
+      }).join('');
+  }).join('') : '';
 
   const content = `
     <div class="global-bar">
       <span class="filter-label">Home Legal</span>
-      <span class="text-muted" style="font-size:12px;margin-left:auto">Data per ${F.dateTime(D.AS_OF)}</span>
+      <span class="text-muted fs-12 ml-auto">Data per ${F.dateTime(D.AS_OF)} · ${enriched.length} kavling</span>
     </div>
 
-    <section class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">
+    <section class="kpi-grid">
       <article class="kpi-card">
-        <div class="kpi-label">Kelengkapan Legal <span class="status-badge rag-bad">Kritis</span></div>
-        <div class="kpi-value">${F.pct(D.LEGAL.pct)}</div>
-        <div class="kpi-sub">${D.LEGAL.done} / ${D.LEGAL.target} dokumen</div>
+        <div class="kpi-label">Kelengkapan Legal</div>
+        <div class="kpi-value">${F.pct(pct)}</div>
+        <div class="kpi-sub">${doneDocs} / ${totalDocs} dokumen selesai</div>
       </article>
       <article class="kpi-card">
         <div class="kpi-label">Dokumen tertunda</div>
-        <div class="kpi-value">${F.num(D.LEGAL.target - D.LEGAL.done)}</div>
+        <div class="kpi-value">${F.num(totalDocs - doneDocs)}</div>
         <div class="kpi-sub">Perlu ditindaklanjuti</div>
       </article>
       <article class="kpi-card">
@@ -72,44 +117,25 @@ document.addEventListener('DOMContentLoaded', async function () {
         </div>
         <div class="table-wrap">
           <table class="data-table">
-            <thead><tr><th>Kavling</th><th>Proyek</th><th>Dokumen</th><th>Status</th><th>Tenggat</th></tr></thead>
-            <tbody>
-              <tr><td><a href="detail.html?id=21">LG-012</a></td><td>Lumiera</td><td>AJB</td><td><span class="status-badge rag-bad">Terlambat</span></td><td>15 Agu 2026</td></tr>
-              <tr><td><a href="detail.html?id=22">LG-008</a></td><td>Lumiera</td><td>BPHTB</td><td><span class="status-badge rag-warn">Proses</span></td><td>10 Okt 2026</td></tr>
-              <tr><td><a href="detail.html?id=3">JA-003</a></td><td>Joyo</td><td>SLF</td><td><span class="status-badge rag-warn">Proses</span></td><td>20 Okt 2026</td></tr>
-              <tr><td><a href="detail.html?id=13">SG-001</a></td><td>Sigura</td><td>BAST</td><td><span class="status-badge rag-info">Belum</span></td><td>—</td></tr>
-              <tr><td><a href="detail.html?id=100">MR-002</a></td><td>Resort</td><td>SHGB</td><td><span class="status-badge rag-info">Belum</span></td><td>—</td></tr>
-            </tbody>
+            <thead><tr><th>Kavling</th><th>Proyek</th><th>Dokumen</th><th>Status</th><th class="num">Kurang</th></tr></thead>
+            <tbody>${priorityRows}</tbody>
           </table>
         </div>
+        <p class="source-note">Sumber: legal.json · diurutkan berdasarkan dokumen belum selesai terbanyak</p>
       </article>
       <article class="card">
         <div class="card-header">
-          <h3 class="card-title">Heatmap status dokumen (ringkas)</h3>
+          <h3 class="card-title">Heatmap status dokumen</h3>
         </div>
-        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;font-size:11px;text-align:center">
-          <div class="text-muted">Kavling</div>
-          <div class="text-muted">SLF</div><div class="text-muted">BAST</div><div class="text-muted">AJB</div>
-          <div class="text-muted">BPHTB</div><div class="text-muted">PPH</div><div class="text-muted">SHGB</div>
-          ${['LG-012','LG-008','JA-003','SG-001','MR-002'].map((k,i) => {
-            const colors = [
-              ['var(--hm-done)','var(--hm-progress)','var(--hm-overdue)','var(--hm-todo)','var(--hm-todo)','var(--hm-todo)'],
-              ['var(--hm-done)','var(--hm-done)','var(--hm-progress)','var(--hm-progress)','var(--hm-todo)','var(--hm-todo)'],
-              ['var(--hm-progress)','var(--hm-todo)','var(--hm-todo)','var(--hm-todo)','var(--hm-todo)','var(--hm-todo)'],
-              ['var(--hm-todo)','var(--hm-todo)','var(--hm-todo)','var(--hm-todo)','var(--hm-todo)','var(--hm-todo)'],
-              ['var(--hm-todo)','var(--hm-todo)','var(--hm-todo)','var(--hm-todo)','var(--hm-todo)','var(--hm-todo)']
-            ][i];
-            return `<div style="font-weight:500">${k}</div>` + colors.map(c =>
-              `<div style="height:20px;background:${c};border-radius:3px"></div>`
-            ).join('');
-          }).join('')}
+        <div style="display:grid;grid-template-columns:minmax(64px,1.4fr) repeat(7,1fr);gap:4px;font-size:11px;text-align:center">
+          ${heatHead}${heatRows}
         </div>
-        <div style="display:flex;gap:12px;margin-top:16px;font-size:12px">
-          <span><span style="display:inline-block;width:10px;height:10px;background:var(--hm-done);border-radius:2px"></span> Selesai</span>
-          <span><span style="display:inline-block;width:10px;height:10px;background:var(--hm-progress);border-radius:2px"></span> Proses</span>
-          <span><span style="display:inline-block;width:10px;height:10px;background:var(--hm-overdue);border-radius:2px"></span> Terlambat</span>
-          <span><span style="display:inline-block;width:10px;height:10px;background:var(--hm-todo);border-radius:2px"></span> Belum</span>
+        <div class="flex gap-12 mt-16 fs-12 wrap">
+          <span><span class="legend-swatch bg-hm-done"></span> Selesai</span>
+          <span><span class="legend-swatch bg-hm-progress"></span> Proses</span>
+          <span><span class="legend-swatch bg-hm-todo"></span> Belum</span>
         </div>
+        <p class="source-note">Menampilkan 6 kavling prioritas. Matriks lengkap tersedia di halaman Matriks Dokumen.</p>
       </article>
     </div>
 
@@ -117,16 +143,16 @@ document.addEventListener('DOMContentLoaded', async function () {
       <div class="card-header">
         <h3 class="card-title">Aksi cepat</h3>
       </div>
-      <ul style="list-style:none;display:flex;flex-direction:column;gap:8px">
-        <li class="flex-between" style="padding:8px 0;border-bottom:1px solid var(--border)">
+      <ul class="list-none flex flex-col gap-8">
+        <li class="flex-between py-8 border-b gap-12 wrap">
           <span>Matriks dokumen &amp; status AJB/SLF</span>
           <a class="btn btn-primary btn-sm" href="dokumen.html">Buka matriks</a>
         </li>
-        <li class="flex-between" style="padding:8px 0;border-bottom:1px solid var(--border)">
+        <li class="flex-between py-8 border-b gap-12 wrap">
           <span>Pengajuan role Legal</span>
           <a class="btn btn-secondary btn-sm" href="pengajuan.html">Pengajuan</a>
         </li>
-        <li class="flex-between" style="padding:8px 0">
+        <li class="flex-between py-8 gap-12 wrap">
           <span>Stok / detail kavling</span>
           <a class="btn btn-secondary btn-sm" href="kavling.html">Kavling</a>
         </li>

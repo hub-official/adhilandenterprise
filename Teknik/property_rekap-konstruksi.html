@@ -3,8 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Rekap Konstruksi — Adhiland Finance</title>
-<script>(function(){try{var t=localStorage.getItem('adh_theme');document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#F4F6FA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B1220" media="(prefers-color-scheme: dark)">
+<title>Rekap Konstruksi — Adhiland ERP</title>
+<script>(function(){try{var t=localStorage.getItem('adh_theme');if(t!=='dark'&&t!=='light'){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
 <link rel="stylesheet" href="../assets/css/tokens.css">
 <link rel="stylesheet" href="../assets/css/app.css">
 </head>
@@ -12,6 +15,7 @@
 <div id="app"></div>
 <script src="../assets/js/fmt.js"></script>
 <script src="../assets/js/theme.js"></script>
+<script src="../assets/js/canonical-data.js"></script>
 <script src="../assets/js/data.js"></script>
 <script src="../assets/js/kavling-catalog.js"></script>
 <script src="../assets/js/shell.js"></script>
@@ -34,9 +38,9 @@ document.addEventListener('DOMContentLoaded', async function () {
     rows += '<td><a class="btn btn-ghost btn-sm" href="detail.html?id='+k.id+'">Detail</a></td></tr>';
   });
   var html = '<div class="global-bar"><span class="filter-label">Rekap Konstruksi</span>';
-  html += '<div class="filter-group" style="margin-left:auto"><button class="btn btn-secondary btn-sm">Export</button></div></div>';
+  html += '<div class="filter-group ml-auto"><button class="btn btn-secondary btn-sm">Export</button></div></div>';
   html += '<section class="kpi-grid"><article class="kpi-card"><div class="kpi-label">On Progress</div><div class="kpi-value">'+D.KONSTRUKSI.onProgress+'</div></article>';
-  html += '<article class="kpi-card"><div class="kpi-label">Terlambat</div><div class="kpi-value" style="color:var(--danger)">'+D.KONSTRUKSI.terlambat+'</div></article>';
+  html += '<article class="kpi-card"><div class="kpi-label">Terlambat</div><div class="kpi-value c-danger">'+D.KONSTRUKSI.terlambat+'</div></article>';
   html += '<article class="kpi-card"><div class="kpi-label">Close</div><div class="kpi-value">'+D.KONSTRUKSI.close+'</div></article>';
   html += '<article class="kpi-card"><div class="kpi-label">Rata telat</div><div class="kpi-value">'+D.KONSTRUKSI.rataTelatHari+' hari</div></article></section>';
   html += '<article class="card"><div class="card-header"><h3 class="card-title">Kavling terjual — klik kode untuk detail P-18</h3></div>';

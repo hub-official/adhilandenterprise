@@ -1,5 +1,5 @@
 /**
- * Adhiland Finance — Data layer (real extract 2026-10-02)
+ * Adhiland ERP — Data layer (real extract 2026-10-02)
  * Loads assets/data/*.json; falls back to embedded aggregate.
  * All numbers from dashboard_proyek + pengajuan + kavling_master.
  */
@@ -98,7 +98,10 @@ window.AdhData = (function () {
     if (D._loaded) return D;
     // Canonical database snapshot generated from database.zip. This is the
     // single browser-side source for all 34 extracted tables + derived views.
-    var canonical = await fetchJSON('canonical-data.json');
+    // Dimuat dari assets/js/canonical-data.js (global) lebih dulu, karena fetch()
+    // ke file:// diblokir Chrome — tanpa ini semua tabel kanonik kosong saat
+    // mockup dibuka dengan klik-ganda, dan seluruh popup detail jadi "Tidak ada data".
+    var canonical = (typeof window !== 'undefined' && window.ADH_CANONICAL) || await fetchJSON('canonical-data.json');
     if (canonical) {
       D.CANONICAL = canonical;
       D.PROJECTS = canonical.projects || D.PROJECTS;
@@ -313,13 +316,95 @@ window.AdhData = (function () {
     var p=(D.PROJECTS||[]).find(function(x){return x.id===pid;});
     var name=p&&p.name;
     var map={
-      saldo:'dashboard_proyek', piutang_ppjb:'dashboard_proyek', penjualan_ppjb:'dashboard_proyek', cash_quality:'kas_ringkasan_bulanan', due:'budgeting_item', pengajuan:'pengajuan', project_matrix:'dashboard_proyek', funnel:'kavling_master', celah_tagih:'dashboard_proyek', budget:'dashboard_budget_realisasi', konstruksi:'rekap_konstruksi', legal:'laporan_legal', notifications:'pengajuan', ar_aging:'piutang_hutang', ap_aging:'piutang_hutang'
+      saldo:'dashboard_proyek', piutang_ppjb:'dashboard_proyek', penjualan_ppjb:'dashboard_proyek', cash_quality:'kas_ringkasan_bulanan', due:'budgeting_item', pengajuan:'pengajuan', project_matrix:'dashboard_proyek', funnel:'kavling_master', celah_tagih:'dashboard_proyek', budget:'dashboard_budget_realisasi', konstruksi:'rekap_konstruksi', legal:'laporan_legal', notifications:'pengajuan', ar_aging:'piutang_hutang', ap_aging:'piutang_hutang', piutang_hutang:'piutang_hutang'
     };
     if(type==='cash_quality') return {type:type,project:p||null,rows:(D.CASH_QUALITY||[]),source:'derived.cashInQuality',scope:D.DATA_SCOPE||'Konsolidasi'};
     if(type==='due') return {type:type,project:p||null,rows:(D.DUE_ITEMS||[]).map(function(r){return {'Cluster':r.project,'Jenis Pekerjaan':r.type,'Deskripsi':r.description,'Jatuh Tempo':r.due,'Sisa':r.amount,'Sisa Hari':r.days,'Status':r.status};}),source:'derived.dueItems',scope:D.DATA_SCOPE||'Konsolidasi'};
     if(type==='notifications') return {type:type,project:p||null,rows:(D.NOTIFICATIONS||[]),source:'derived.notifications',scope:D.DATA_SCOPE||'Konsolidasi'};
     if(type==='ar_aging') return {type:type,project:p||null,rows:(D.AR_AGING||[]),source:'derived.arAging',scope:D.DATA_SCOPE||'Konsolidasi'};
     if(type==='ap_aging') return {type:type,project:p||null,rows:(D.AP_AGING||[]),source:'derived.apAging',scope:D.DATA_SCOPE||'Konsolidasi'};
+
+    /* ---- Detail per kartu KPI: satu kategori = satu sumber eksplisit ----
+       Tiap kartu dashboard punya kategori informasi berbeda, jadi tiap tipe
+       menunjuk tabel sumbernya sendiri (bukan semuanya ke dashboard_proyek).
+       Bila tabel kanonik belum tersedia (mis. dibuka via file://), dipakai
+       fallback dari agregat yang sama dengan yang dipakai kartunya, supaya
+       angka popup SELALU konsisten dengan angka kartu. */
+    var salesRows=function(){
+      var bp=(D.SALES&&D.SALES.byProject)||{},out=[];
+      (D.PROJECTS||[]).forEach(function(pr){var v=bp[pr.id];if(!v)return;
+        out.push({Proyek:pr.name,'Unit Terjual':v.n||0,'Nilai PPJB':v.ppjb||0,'Uang Masuk':v.masuk||0,'Piutang PPJB':v.sisa||0,'Total Penjualan':v.ppjb||0,Rasio:(v.rasio||0)*100});});
+      return out;
+    };
+    var sc=D.DATA_SCOPE||'Konsolidasi';
+    var sumBy=function(list,f){return (list||[]).reduce(function(a,r){return a+(Number(r[f])||0);},0);};
+    var rp=function(n){return 'Rp '+Math.round(Number(n)||0).toLocaleString('id-ID');};
+    /* Baris "Total ..." dari tabel sumber tidak ikut ditampilkan sebagai baris
+       tabel; nilainya diangkat ke ringkasan di ATAS tabel (permintaan Bos). */
+    var dropTotalRows=function(list){return (list||[]).filter(function(r){return String(r.Akun||'').toLowerCase().indexOf('total')<0;});};
+    if(type==='kas_bank'){
+      var kb=(db.dashboard_proyek||[]).map(function(r){return {Proyek:r.Proyek,Bank:r.Bank,Brankas:r.Brankas,'Kas Kecil & Silang Kas':r['Kas Kecil & Silang Kas'],Total:r.Total};});
+      if(!kb.length)kb=(D.PROJECT_HEALTH||[]).map(function(pp){return {Proyek:pp.name,Bank:null,Brankas:null,'Kas Kecil & Silang Kas':null,Total:pp.kas||0};});
+      if(name)kb=kb.filter(function(r){return r.Proyek===name;});
+      return {type:type,project:p||null,rows:kb,total:sumBy(kb,'Total'),totalLabel:'Total Kas & Bank',source:'dashboard_proyek · kolom kas',scope:sc};
+    }
+    if(type==='total_ppjb'){
+      var tp=(db.dashboard_proyek||[]).map(function(r){return {Proyek:r.Proyek,'Unit Terjual':r['Unit Terjual'],'Nilai PPJB':r['Nilai PPJB'],'Total Penjualan':r['Total Penjualan']};});
+      if(!tp.length)tp=salesRows().map(function(r){return {Proyek:r.Proyek,'Unit Terjual':r['Unit Terjual'],'Nilai PPJB':r['Nilai PPJB'],'Total Penjualan':r['Total Penjualan']};});
+      if(name)tp=tp.filter(function(r){return r.Proyek===name;});
+      return {type:type,project:p||null,rows:tp,total:sumBy(tp,'Nilai PPJB'),totalLabel:'Total Nilai PPJB',totalNote:sumBy(tp,'Unit Terjual')+' kavling terjual',source:'dashboard_proyek · Nilai PPJB',scope:sc};
+    }
+    if(type==='uang_masuk'){
+      var um=(db.dashboard_proyek||[]).map(function(r){return {Proyek:r.Proyek,'Nilai PPJB':r['Nilai PPJB'],'Uang Masuk':r['Uang Masuk'],Rasio:r.Rasio};});
+      if(!um.length)um=salesRows().map(function(r){return {Proyek:r.Proyek,'Nilai PPJB':r['Nilai PPJB'],'Uang Masuk':r['Uang Masuk'],Rasio:r.Rasio};});
+      if(name)um=um.filter(function(r){return r.Proyek===name;});
+      var umTot=sumBy(um,'Uang Masuk'),umBase=sumBy(um,'Nilai PPJB');
+      return {type:type,project:p||null,rows:um,total:umTot,totalLabel:'Total Uang Masuk',totalNote:umBase?('dari PPJB '+rp(umBase)+' · '+(umTot/umBase*100).toFixed(2)+'%'):null,source:'dashboard_proyek · Uang Masuk',scope:sc};
+    }
+    if(type==='sisa_tagihan'){
+      var stg=(db.dashboard_proyek||[]).map(function(r){return {Proyek:r.Proyek,'Nilai PPJB':r['Nilai PPJB'],'Uang Masuk':r['Uang Masuk'],'Piutang PPJB':r['Piutang PPJB']};});
+      if(!stg.length)stg=salesRows().map(function(r){return {Proyek:r.Proyek,'Nilai PPJB':r['Nilai PPJB'],'Uang Masuk':r['Uang Masuk'],'Piutang PPJB':r['Piutang PPJB']};});
+      if(name)stg=stg.filter(function(r){return r.Proyek===name;});
+      var stTot=sumBy(stg,'Piutang PPJB'),stBase=sumBy(stg,'Nilai PPJB');
+      return {type:type,project:p||null,rows:stg,total:stTot,totalLabel:'Total Sisa Tagihan',totalNote:stBase?((stTot/stBase*100).toFixed(2)+'% dari nilai PPJB'):null,source:'dashboard_proyek · Piutang PPJB',scope:sc};
+    }
+    if(type==='stok_belum'){
+      var sk=(db.kavling_master||[]).filter(function(r){return String(r['Status Unit']||'').toUpperCase()==='BELUM TERJUAL';})
+        .map(function(r){return {Proyek:r['Nama Proyek'],Kavling:r.Kavling,'Nama Pembeli':r['Nama Pembeli'],'Harga Jual Daftar':r['Harga Jual Daftar'],'Status Unit':r['Status Unit']};});
+      if(name)sk=sk.filter(function(r){return r.Proyek===name;});
+      var skFallback=false;
+      if(!sk.length){skFallback=true;sk=[{Proyek:name||'Konsolidasi',Kavling:'—','Nama Pembeli':'—','Harga Jual Daftar':null,'Status Unit':'BELUM TERJUAL'}];}
+      return {type:type,project:p||null,rows:sk,
+        total:skFallback?((D.STOK&&D.STOK.belumTerjual)||0):sk.length,totalLabel:'Total Kavling Belum Terjual',
+        totalNote:'potensi '+(skFallback?rp((D.STOK&&D.STOK.potensi)||0):rp(sumBy(sk,'Harga Jual Daftar'))),
+        source:'kavling_master · Status Unit = BELUM TERJUAL',scope:sc};
+    }
+    if(type==='hutang'||type==='piutang_usaha'){
+      var sec=(type==='hutang')?'Hutang':'Piutang';
+      var raw=(db.piutang_hutang||[]).filter(function(r){return r.Seksi===sec;});
+      if(name)raw=raw.filter(function(r){return r.Perusahaan===name;});
+      var det=dropTotalRows(raw);
+      var tot=sumBy(det,'Saldo');
+      var hasDetail=det.length>0;
+      if(!hasDetail){
+        // hanya ada baris "Total ..." (mis. proyek tanpa rincian akun) — pakai nilai totalnya
+        tot=sumBy(raw,'Saldo');
+        if(!raw.length)tot=(type==='hutang')?((D.LIABILITAS&&D.LIABILITAS.hutang)||0):((D.LIABILITAS&&D.LIABILITAS.piutangUsaha)||0);
+        det=[];
+      }
+      return {type:type,project:p||null,rows:det,total:tot,
+        totalLabel:(type==='hutang')?'Total Hutang':'Total Piutang Usaha',
+        totalNote:hasDetail?null:'tidak ada rincian akun pada scope ini',
+        emptyNote:hasDetail?null:'Tidak ada rincian akun — hanya nilai total tersedia.',
+        source:'piutang_hutang · Seksi = '+sec,scope:sc};
+    }
+    if(type==='serapan_anggaran'){
+      var sa=(db.dashboard_budget_realisasi||[]).map(function(r){var a=Number(r['Alokasi Anggaran'])||0,rr=Number(r['Realisasi'])||0;return {'Jenis Pekerjaan':r['Jenis Pekerjaan'],'Alokasi Anggaran':a,Realisasi:rr,'%':a?rr/a*100:0};});
+      if(!sa.length){var bg=(D.BUDGET&&D.BUDGET.anggaran)||0,rg=(D.BUDGET&&D.BUDGET.realisasi)||0;sa=[{'Jenis Pekerjaan':'Total Anggaran','Alokasi Anggaran':bg,Realisasi:rg,'%':bg?rg/bg*100:0}];}
+      var saReal=sumBy(sa,'Realisasi'),saPlan=sumBy(sa,'Alokasi Anggaran');
+      return {type:type,project:p||null,rows:sa,total:saReal,totalLabel:'Total Realisasi',totalNote:'dari anggaran '+rp(saPlan)+(saPlan?(' · '+(saReal/saPlan*100).toFixed(2)+'%'):''),source:'dashboard_budget_realisasi',scope:sc};
+    }
+
     var rows=db[map[type]]||[];
     if(name) rows=rows.filter(function(r){return (r.Proyek||r['Nama Proyek']||r.Cluster||r.Perusahaan)===name;});
     if(type==='funnel'){

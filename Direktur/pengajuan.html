@@ -3,10 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Pengajuan Direktur — Adhiland Finance</title>
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#F4F6FA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B1220" media="(prefers-color-scheme: dark)">
+<title>Pengajuan Direktur — Adhiland ERP</title>
 <script>
-(function(){try{var t=localStorage.getItem('adh_theme');
-document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}
+(function(){try{var t=localStorage.getItem('adh_theme');if(t!=='dark'&&t!=='light'){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}
 catch(e){document.documentElement.setAttribute('data-theme','light');}})();
 </script>
 <link rel="stylesheet" href="../assets/css/tokens.css">
@@ -17,6 +19,7 @@ catch(e){document.documentElement.setAttribute('data-theme','light');}})();
 <script src="../assets/js/fmt.js"></script>
 <script src="../assets/js/theme.js"></script>
 <script src="../assets/js/local-state.js"></script>
+<script src="../assets/js/canonical-data.js"></script>
 <script src="../assets/js/data.js"></script>
 <script src="../assets/js/shell.js"></script>
 <script>
@@ -67,35 +70,30 @@ document.addEventListener('DOMContentLoaded', async function () {
 
   function openRejectDrawer(ids) {
     rejectTarget = { ids: ids.slice(), mode: ids.length > 1 ? 'bulk' : 'single' };
-    const overlay = document.getElementById('reject-overlay');
-    const input = document.getElementById('reject-alasan');
-    if (input) input.value = '';
-    if (overlay) {
-      overlay.style.display = 'flex';
-      setTimeout(function () { input && input.focus(); }, 50);
-    }
-  }
-
-  function closeRejectDrawer() {
-    rejectTarget = null;
-    const overlay = document.getElementById('reject-overlay');
-    if (overlay) overlay.style.display = 'none';
-  }
-
-  function confirmReject() {
-    const input = document.getElementById('reject-alasan');
-    const alasan = (input && input.value || '').trim();
-    if (!alasan) {
-      LS.showToast('Alasan penolakan wajib diisi', 'warn');
-      if (input) input.focus();
-      return;
-    }
-    if (!rejectTarget || !rejectTarget.ids.length) return;
-    LS.setPengajuanStatusBulk(rejectTarget.ids, 'Ditolak', alasan);
-    rejectTarget.ids.forEach(function (id) { selected.delete(id); });
-    closeRejectDrawer();
-    LS.showToast('Ditolak (mock lokal): ' + rejectTarget.ids.length + ' item', 'info');
-    render();
+    const d = AdhShell.openDrawer({
+      id: 'reject-drawer',
+      title: 'Tolak pengajuan' + (ids.length > 1 ? ' (' + ids.length + ' item)' : ''),
+      body: '<p class="text-muted note-md">Alasan penolakan wajib diisi (disimpan mock lokal).</p>' +
+            '<label class="form-label" for="reject-alasan">Alasan</label>' +
+            '<textarea id="reject-alasan" class="form-input textarea-auto" rows="4"  placeholder="Contoh: melebihi anggaran / dokumen belum lengkap"></textarea>',
+      footer: '<button class="btn btn-ghost" data-drawer-close type="button">Batal</button>' +
+              '<button class="btn btn-primary" id="reject-confirm" type="button">Tolak</button>'
+    });
+    const input = d.el.querySelector('#reject-alasan');
+    if (input) setTimeout(function () { input.focus(); }, 60);
+    const btn = d.el.querySelector('#reject-confirm');
+    if (btn) btn.addEventListener('click', function () {
+      const alasan = (input && input.value || '').trim();
+      if (!alasan) { LS.showToast('Alasan penolakan wajib diisi', 'warn'); if (input) input.focus(); return; }
+      if (!rejectTarget || !rejectTarget.ids.length) return;
+      const idsToReject = rejectTarget.ids.slice();
+      LS.setPengajuanStatusBulk(idsToReject, 'Ditolak', alasan);
+      idsToReject.forEach(function (id) { selected.delete(id); });
+      rejectTarget = null;
+      d.close();
+      LS.showToast('Ditolak (mock lokal): ' + idsToReject.length + ' item', 'info');
+      render();
+    });
   }
 
   function render() {
@@ -116,15 +114,15 @@ document.addEventListener('DOMContentLoaded', async function () {
     const rows = list.map(function (p) {
       const can = (p.status || '').toLowerCase().replace(/_/g, ' ') === 'menunggu';
       const chk = selected.has(p.id) ? 'checked' : '';
-      const mockTag = (hasOverride(p.id) || p._mockCreated) ? ' <span class="text-muted" style="font-size:10px">(mock lokal)</span>' : '';
+      const mockTag = (hasOverride(p.id) || p._mockCreated) ? ' <span class="text-muted fs-10">(mock lokal)</span>' : '';
       const alasan = getAlasan(p.id) || p.alasan;
       const alasanTip = alasan
-        ? ' <span class="text-muted" style="font-size:10px" title="' + String(alasan).replace(/"/g, '&quot;') + '">· alasan</span>'
+        ? ' <span class="text-muted fs-10"  title="' + String(alasan).replace(/"/g, '&quot;') + '">· alasan</span>'
         : '';
       const actions = can
         ? '<button class="btn btn-primary btn-sm btn-approve" data-id="' + p.id + '">Setujui</button> ' +
           '<button class="btn btn-ghost btn-sm btn-reject" data-id="' + p.id + '">Tolak</button>'
-        : '<span class="text-muted" style="font-size:11px">—</span>';
+        : '<span class="text-muted fs-11">—</span>';
       return '<tr>' +
         '<td>' + (can ? '<input type="checkbox" class="row-check" data-id="' + p.id + '" ' + chk + '>' : '') + '</td>' +
         '<td>' + p.id + '</td>' +
@@ -134,8 +132,8 @@ document.addEventListener('DOMContentLoaded', async function () {
         '<td>' + (p.umur || 0) + ' hari</td>' +
         '<td>' + statusBadge(p.status) + mockTag + alasanTip + '</td>' +
         '<td>' + (p.pemohon || '—') + '</td>' +
-        '<td class="text-muted" style="font-size:11px">' + (p.sumberRole || '') + '</td>' +
-        '<td style="white-space:nowrap">' + actions + '</td>' +
+        '<td class="text-muted fs-11">' + (p.sumberRole || '') + '</td>' +
+        '<td class="nowrap">' + actions + '</td>' +
         '</tr>';
     }).join('');
 
@@ -147,7 +145,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     }).join('');
 
     const content =
-    '<div class="global-bar" style="flex-wrap:wrap;gap:8px">' +
+    '<div class="global-bar wrap gap-8">' +
       '<div class="filter-group" id="st-filters">' +
         '<span class="filter-label">Status</span>' +
         '<button class="chip ' + (statusFilter==='menunggu'?'active':'') + '" data-st="menunggu">Menunggu Direktur (' + nMenunggu + ')</button>' +
@@ -158,18 +156,18 @@ document.addEventListener('DOMContentLoaded', async function () {
         '<button class="chip ' + (statusFilter==='dibayar'?'active':'') + '" data-st="dibayar">Dibayar</button>' +
         '<button class="chip ' + (statusFilter==='semua'?'active':'') + '" data-st="semua">Semua</button>' +
       '</div>' +
-      '<div class="filter-group" style="margin-left:auto;gap:8px">' +
+      '<div class="filter-group ml-auto gap-8">' +
         '<button class="btn btn-primary btn-sm" id="btn-mass" ' + (selected.size===0?'disabled':'') + '>Setujui massal (' + selected.size + ')</button>' +
         '<button class="btn btn-ghost btn-sm" id="btn-mass-reject" ' + (selected.size===0?'disabled':'') + '>Tolak massal</button>' +
       '</div>' +
     '</div>' +
-    '<div class="global-bar" style="padding-top:0">' +
+    '<div class="global-bar pt-0">' +
       '<div class="filter-group" id="role-filters">' +
         '<span class="filter-label">Sumber role</span>' +
         roleChipHtml +
       '</div>' +
     '</div>' +
-    '<section class="kpi-grid" style="grid-template-columns:repeat(3,1fr)">' +
+    '<section class="kpi-grid cols-3">' +
       '<article class="kpi-card">' +
         '<div class="kpi-label">Menunggu' + (roleFilter!=='semua' ? ' (' + roleFilter + ')' : ' (semua role)') + '</div>' +
         '<div class="kpi-value">' + nMenunggu + '</div>' +
@@ -191,21 +189,8 @@ document.addEventListener('DOMContentLoaded', async function () {
         '<thead><tr><th></th><th>ID</th><th>Proyek</th><th>Jenis</th><th class="num">Nilai</th><th>Umur</th><th>Status</th><th>Pemohon</th><th>Role</th><th>Aksi</th></tr></thead>' +
         '<tbody>' + (rows || '<tr><td colspan="10" class="text-muted">Tidak ada data</td></tr>') + '</tbody>' +
       '</table></div>' +
-      '<p class="text-muted mt-2" style="font-size:12px">' + list.length + ' baris · Final approve hanya Direktur · item baru lewat Review Finance · filter sumberRole=' + (roleFilter==='semua'?'*':roleFilter) + '</p>' +
-    '</article>' +
-    // Reject drawer overlay
-    '<div id="reject-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:center;justify-content:center">' +
-      '<div class="card" style="width:min(420px,92vw);padding:20px;margin:16px">' +
-        '<h3 style="margin:0 0 8px;font-size:16px">Tolak pengajuan</h3>' +
-        '<p class="text-muted" style="font-size:12px;margin:0 0 12px">Alasan penolakan wajib diisi (disimpan mock lokal).</p>' +
-        '<label style="display:block;font-size:12px;margin-bottom:4px">Alasan</label>' +
-        '<textarea id="reject-alasan" rows="3" style="width:100%;box-sizing:border-box;padding:8px;border-radius:6px;border:1px solid var(--border, #ccc);font:inherit" placeholder="Contoh: melebihi anggaran / dokumen belum lengkap"></textarea>' +
-        '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">' +
-          '<button class="btn btn-ghost btn-sm" id="reject-cancel">Batal</button>' +
-          '<button class="btn btn-primary btn-sm" id="reject-confirm">Tolak</button>' +
-        '</div>' +
-      '</div>' +
-    '</div>';
+      '<p class="text-muted mt-2 fs-12">' + list.length + ' baris · Final approve hanya Direktur · item baru lewat Review Finance · filter sumberRole=' + (roleFilter==='semua'?'*':roleFilter) + '</p>' +
+    '</article>';
 
     AdhShell.mount({ role: ROLE, title: 'Pengajuan ' + ROLE, content: content });
 
@@ -238,20 +223,21 @@ document.addEventListener('DOMContentLoaded', async function () {
       if (selected.size === 0) return;
       const ids = Array.from(selected);
       const imp = AdhData.cashImpact(ids);
-      if (!confirm('Setujui ' + ids.length + ' item (total ' + F.IDR(imp.total) + ')? (mock lokal)')) return;
-      LS.setPengajuanStatusBulk(ids, 'Disetujui');
-      selected.clear();
-      LS.showToast('Disetujui massal (mock lokal): ' + ids.length + ' item', 'info');
-      render();
+      AdhShell.confirmDialog({
+        title: 'Setujui massal',
+        message: 'Setujui ' + ids.length + ' item dengan total ' + F.IDR(imp.total) + '? Aksi ini disimpan sebagai mock lokal.',
+        confirmText: 'Setujui',
+        onConfirm: function () {
+          LS.setPengajuanStatusBulk(ids, 'Disetujui');
+          selected.clear();
+          LS.showToast('Disetujui massal (mock lokal): ' + ids.length + ' item', 'info');
+          render();
+        }
+      });
     });
     document.getElementById('btn-mass-reject') && document.getElementById('btn-mass-reject').addEventListener('click', function () {
       if (selected.size === 0) return;
       openRejectDrawer(Array.from(selected));
-    });
-    document.getElementById('reject-cancel') && document.getElementById('reject-cancel').addEventListener('click', closeRejectDrawer);
-    document.getElementById('reject-confirm') && document.getElementById('reject-confirm').addEventListener('click', confirmReject);
-    document.getElementById('reject-overlay') && document.getElementById('reject-overlay').addEventListener('click', function (e) {
-      if (e.target === e.currentTarget) closeRejectDrawer();
     });
   }
   render();
