@@ -194,7 +194,7 @@ a:hover { color: var(--primary-hover); }
   top: 0;
   z-index: var(--z-topbar);
 }
-.topbar-left { display: flex; align-items: center; gap: var(--sp-3); flex: 1; }
+.topbar-left { display: flex; align-items: center; gap: var(--sp-3); flex: 1; min-width: 0; }
 .topbar-right { display: flex; align-items: center; gap: var(--sp-3); }
 .btn-icon {
   width: 36px; height: 36px;
@@ -212,6 +212,15 @@ a:hover { color: var(--primary-hover); }
   font-size: var(--fs-16);
   font-weight: 600;
   color: var(--text);
+  /* WAJIB nowrap: di topbar mobile ruang .topbar-titles bisa menyusut sampai ~64px
+     (karena .topbar-right berisi project picker 190px + 3 tombol dan tidak menyusut),
+     sehingga judul 16px seperti "Piutang & Hutang" pecah jadi 3 baris setinggi 72px
+     dan meluber keluar topbar yang hanya 56px. Melubernya judul itulah yang terlihat
+     "menimpa" menu sidebar. Perilaku ellipsis disamakan dengan .breadcrumb [aria-current]. */
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .topbar-titles { min-width: 0; }
 .breadcrumb ol { list-style: none; display: flex; align-items: center; gap: 6px; margin: 1px 0 0; padding: 0; font-size: 11px; color: var(--text-subtle); }
@@ -748,7 +757,12 @@ textarea[aria-invalid="true"] {
   .main { padding: var(--sp-4); }
   .sidebar-toggle-text { display: none; }
   .global-project-picker span { display: none; }
-  .global-project-picker select { min-width: 150px; }
+  /* Prioritas topbar: judul halaman menang. Saat sidebar tablet dibuka (248px) kolom
+     topbar menyusut; picker 190px membuat judul terhimpit sampai ~28px. Dibatasi 150px
+     dan min-width-nya dinolkan supaya ia yang mengalah, bukan judul.
+     Selector diawali .topbar (0-2-1) agar menang atas
+     `.global-project-picker select{min-width:190px}` yang ada LEBIH AKHIR di file ini. */
+  .topbar .global-project-picker select { min-width: 0; max-width: 150px; }
 }
 
 /* Login page */
@@ -1014,7 +1028,13 @@ table.data-table tbody tr:hover {
   .topbar,.main{grid-column:1}
   .main{padding:var(--sp-3);min-height:0}
   .main-inner{padding-bottom:calc(24px + var(--safe-bottom))}
-  .sidebar{
+  /* Selector sengaja .app-shell .sidebar (0-2-0), BUKAN .sidebar (0-1-0):
+     blok "V3 SHELL / VIEWPORT POLISH" di bawah file ini memuat .sidebar{position:relative}
+     yang muncul LEBIH AKHIR sehingga tanpa ini ia menang dan membatalkan position:fixed.
+     Akibatnya sidebar ikut ambil slot grid -> .topbar terdorong ke baris 2 dan muncul
+     pita kosong setinggi --topbar-h (56px) di atas topbar saat drawer tertutup.
+     Blok ini memang dimaksudkan sebagai "overlay sidebar" (lihat judul blok di atas). */
+  .app-shell .sidebar{
     position:fixed;inset:0 auto 0 0;
     width:var(--sidebar-w);
     height:100dvh;height:100vh;
@@ -1040,7 +1060,41 @@ table.data-table tbody tr:hover {
     content:"";position:fixed;inset:var(--topbar-h) 0 0 0;
     background:var(--overlay);z-index:var(--z-backdrop);pointer-events:auto;
   }
-  .topbar{z-index:90;padding:0 12px}
+  /* JANGAN naikkan z-index topbar di atas drawer. Sebelumnya nilainya 90, padahal
+     --z-backdrop:70 dan --z-mobile-sidebar:80, sehingga saat drawer terbuka topbar
+     tidak ikut teredup dan justru menimpa isi drawer (strip topbar tampak "nyangkut"
+     di tengah menu sidebar). Biarkan --z-topbar (30) berlaku: drawer menutup topbar. */
+  .topbar{padding:0 12px;gap:8px}
+  /* Topbar mobile harus BENAR-BENAR muat. Sebelumnya .topbar-right meminta ~344px
+     (project picker min-width:190px + 3 tombol) di viewport 360px, sehingga
+     .topbar-left terhimpit ke 0-112px dan judul halaman pecah jadi 3 baris.
+     Di sini picker dibiarkan menyusut dan gap dirapatkan supaya judul dapat ruang. */
+  .topbar-left{min-width:0}
+  .topbar-right{gap:6px;min-width:0}
+  .global-project-picker{min-width:0}
+  /* Prioritas topbar mobile: JUDUL halaman menang. Karena itu project picker
+     dipindahkan ke dalam drawer oleh shell.js (syncPickerPlacement), bukan sekadar
+     dikecilkan. Di drawer ia tampil penuh dengan warna token nav (sidebar selalu gelap).
+     Aturan .topbar ... di atas tetap dipertahankan sebagai fallback bila JS gagal. */
+  .global-project-picker.in-drawer{
+    display:flex;align-items:center;gap:8px;
+    padding:var(--sp-3) var(--sp-4);
+    border-bottom:1px solid var(--nav-border);
+  }
+  .global-project-picker.in-drawer > span{
+    display:inline;font-size:10px;font-weight:600;text-transform:uppercase;
+    letter-spacing:.04em;color:var(--nav-text);opacity:.7;
+  }
+  .global-project-picker.in-drawer select{
+    flex:1 1 auto;min-width:0;width:100%;max-width:none;
+    background:var(--nav-active-bg);color:var(--nav-text-active);border-color:var(--nav-border);
+  }
+  .global-project-picker.in-drawer select option{background:var(--nav-bg);color:var(--nav-text-active)}
+  .app-shell.sidebar-collapsed .global-project-picker.in-drawer{display:none}
+  /* Spesifisitas dinaikkan (.topbar ...) supaya menang atas
+     .global-project-picker select{min-width:190px} yang ada LEBIH AKHIR di file ini
+     (min-width selalu menang atas max-width, jadi tanpa ini picker tetap 190px). */
+  .topbar .global-project-picker select{min-width:0;max-width:132px}
   .kpi-grid,.decision-grid,.zone-3-4-4-4{grid-template-columns:1fr}
   .user-role{display:none}
   .table-search{min-width:180px;flex:1}
@@ -1064,6 +1118,8 @@ table.data-table tbody tr:hover {
   .global-modal{width:100%;max-height:calc(100dvh - 24px)}
   .drawer{width:100vw}
   .table-search{min-width:0}
+  /* Layar <=480px: picker dikecilkan lagi agar judul halaman tetap terbaca utuh. */
+  .topbar .global-project-picker select{max-width:96px}
   .topbar{padding-left:calc(8px + var(--safe-left));padding-right:calc(8px + var(--safe-right))}
 }
 .decision-status-dot{display:block;width:9px;height:9px;border-radius:50%;background:currentColor;box-shadow:0 0 0 3px color-mix(in srgb,currentColor 12%,transparent)}

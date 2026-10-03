@@ -331,6 +331,25 @@
       var m=isMobile();
       if(m!==lastMobile){lastMobile=m;setSidebarState(m?true:defaultCollapsed());}
     });
+    /* Prioritas topbar mobile: judul halaman harus menang ruang.
+       Di bawah 768px project picker DIPINDAH ke dalam drawer (tepat di bawah brand),
+       sehingga topbar tinggal: toggle + judul + notifikasi + tema + avatar.
+       Listener yang sudah terpasang pada <select> ikut terbawa saat node dipindah
+       (reparenting tidak menghapus event listener), jadi filter project tetap jalan. */
+    function syncPickerPlacement(){
+      var picker=shell.querySelector('.global-project-picker');
+      var brand=shell.querySelector('.sidebar-brand');
+      var home=shell.querySelector('.topbar-right');
+      if(!picker||!brand||!home)return;
+      if(isMobile()){
+        if(picker.parentElement!==brand){brand.insertAdjacentElement('afterend',picker);picker.classList.add('in-drawer');}
+      }else if(picker.parentElement!==home){
+        home.insertBefore(picker,home.firstChild);picker.classList.remove('in-drawer');
+      }
+    }
+    syncPickerPlacement();
+    window.addEventListener('resize',syncPickerPlacement);
+    window.addEventListener('orientationchange',syncPickerPlacement);
     window.addEventListener('orientationchange',function(){
       setTimeout(function(){if(window.AdhDashboard&&window.AdhDashboard.resizeCharts)window.AdhDashboard.resizeCharts();},250);
     });
