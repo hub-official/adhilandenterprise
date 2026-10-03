@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kavling &amp; Penjualan — Adhiland Finance</title>
+<script>
+(function(){try{var t=localStorage.getItem('adh_theme');
+document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}
+catch(e){document.documentElement.setAttribute('data-theme','light');}})();
+</script>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/app.css">
+</head>
+<body>
+<div id="app"></div>
+<script src="../assets/js/fmt.js"></script>
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/shell.js"></script>
+<script src="../assets/js/kavling.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async function () {
+  const F = fmt;
+  await AdhData.load();
+  const D = AdhData;
+  const K = AdhKavling;
+  let currentFilter = 'semua';
+
+  function render() {
+    const list = K.filterList(D.KAVLING || [], currentFilter);
+    const kpi = K.kpiFromList(D.KAVLING || []);
+    const rows = K.renderListRows(list, { useTemplate: true });
+    const content = `
+    <div class="global-bar">
+      <div class="filter-group" id="status-filters">
+        <span class="filter-label">Status</span>
+        <button class="chip ${currentFilter==='semua'?'active':''}" data-st="semua">Semua</button>
+        <button class="chip ${currentFilter==='belum'?'active':''}" data-st="belum">Belum terjual</button>
+        <button class="chip ${currentFilter==='deal'?'active':''}" data-st="deal">Deal</button>
+        <button class="chip ${currentFilter==='bertahap'?'active':''}" data-st="bertahap">Bertahap</button>
+        <button class="chip ${currentFilter==='cash'?'active':''}" data-st="cash">Cash</button>
+      </div>
+      <div class="filter-group" style="margin-left:auto">
+        <button class="btn btn-primary btn-sm">+ Tambah Kavling</button>
+        <button class="btn btn-secondary btn-sm">Export</button>
+      </div>
+    </div>
+    <section class="kpi-grid">
+      <article class="kpi-card"><div class="kpi-label">Total Kavling</div><div class="kpi-value">${kpi.total}</div></article>
+      <article class="kpi-card"><div class="kpi-label">Terjual</div><div class="kpi-value">${kpi.terjual} <span class="text-muted" style="font-size:14px">(${kpi.pct.toFixed(1).replace('.',',')}%)</span></div></article>
+      <article class="kpi-card"><div class="kpi-label">Nilai PPJB</div><div class="kpi-value">${F.IDR(D.SALES.ppjb,'compact')}</div></article>
+      <article class="kpi-card"><div class="kpi-label">Sisa Tagihan PPJB</div><div class="kpi-value">${F.IDR(D.SALES.sisaTagihan,'compact')}</div></article>
+    </section>
+    <article class="card">
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr>
+            <th>Proyek</th><th>Kavling</th><th>Pembeli</th><th class="num">Harga Jual</th>
+            <th>Status</th><th>Tgl PPJB</th><th>Terbayar</th><th class="num">Sisa</th><th class="num">Umur</th>
+          </tr></thead>
+          <tbody>${rows || '<tr><td colspan="9" class="text-muted">Memuat data…</td></tr>'}</tbody>
+        </table>
+      </div>
+      <p class="text-muted mt-2" style="font-size:12px">Menampilkan ${list.length} dari ${kpi.total} kavling · Sumber: kavling_master (extract 2026-10-02)</p>
+    </article>`;
+    AdhShell.mount({ role: 'Legal', title: 'Kavling Legal', content: content });
+    document.querySelectorAll('#status-filters .chip').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        currentFilter = btn.dataset.st;
+        render();
+      });
+    });
+  }
+
+  render();
+});
+</script>
+</body>
+</html>

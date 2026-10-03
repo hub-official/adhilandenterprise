@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Home Teknik — Adhiland Finance</title>
+<script>
+(function(){try{var t=localStorage.getItem('adh_theme');
+document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}
+catch(e){document.documentElement.setAttribute('data-theme','light');}})();
+</script>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/app.css">
+</head>
+<body>
+<div id="app"></div>
+<script src="../assets/js/fmt.js"></script>
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/shell.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async function () {
+  await AdhData.load();
+  const D = AdhData, F = fmt;
+  const K = D.KONSTRUKSI || {};
+
+  // Risiko dari kavling: on progress rendah + ada target serah terima
+  const now = new Date();
+  const risk = (D.KAVLING || [])
+    .filter(function (k) {
+      const pct = Number(k.progresBangun) || 0;
+      const st = (k.status || '').toLowerCase();
+      if (st === 'belum' || st === 'deal') return false;
+      return pct < 100 && pct >= 0;
+    })
+    .map(function (k) {
+      let telat = 0;
+      if (k.tglSerahTerima) {
+        const t = new Date(k.tglSerahTerima);
+        if (!isNaN(t) && t < now) telat = Math.round((now - t) / 86400000);
+      }
+      return { k: k, telat: telat, pct: Number(k.progresBangun) || 0 };
+    })
+    .filter(function (r) { return r.telat > 0 || r.pct < 50; })
+    .sort(function (a, b) { return b.telat - a.telat || a.pct - b.pct; })
+    .slice(0, 8);
+
+  const riskRows = risk.length
+    ? risk.map(function (r) {
+        const k = r.k;
+        const color = r.telat > 90 ? 'var(--danger)' : r.telat > 0 ? 'var(--warning)' : 'var(--text-muted)';
+        return '<tr>' +
+          '<td><a href="detail.html?id=' + k.id + '">' + (k.kavling || k.code || '#' + k.id) + '</a></td>' +
+          '<td>' + (k.proyek || '—').replace('EazyKost ', '').replace(' Garden', '') + '</td>' +
+          '<td class="num">' + r.pct.toFixed(0) + '%</td>' +
+          '<td class="num" style="color:' + color + '">' + (r.telat > 0 ? r.telat : '—') + '</td>' +
+          '<td>' + (k.kontraktor || '—') + '</td>' +
+          '</tr>';
+      }).join('')
+    : '<tr><td colspan="5" class="text-muted">Tidak ada unit berisiko dari data kavling (progres &amp; tgl ST)</td></tr>';
+
+  // Progres terbaru dari progres.json
+  let progresRows = '';
+  try {
+    const pr = await D.loadReport('progres');
+    const rows = Array.isArray(pr) ? pr : (pr.rows || []);
+    progresRows = rows.slice(0, 8).map(function (r) {
+      return '<tr><td>' + (r.Kavling || r.kavling || '—') + '</td><td>' + (r.Cluster || r.cluster || '—') +
+        '</td><td class="num">' + (r.Persentase || r.persentase || '—') + '%</td><td>' + (r.Tanggal || r.tanggal || '—') +
+        '</td><td>' + (r['Dicatat oleh'] || r.oleh || '—') + '</td></tr>';
+    }).join('');
+  } catch (e) { progresRows = ''; }
+
+  const content = `
+    <div class="global-bar">
+      <span class="filter-label">Home Teknik</span>
+      <span class="text-muted" style="font-size:12px;margin-left:auto">Data per ${F.dateTime(D.AS_OF)}</span>
+    </div>
+
+    <section class="kpi-grid">
+      <article class="kpi-card">
+        <div class="kpi-label">On Progress</div>
+        <div class="kpi-value">${K.onProgress || 0}</div>
+        <div class="kpi-sub">dari ${K.total || 0} unit</div>
+      </article>
+      <article class="kpi-card">
+        <div class="kpi-label">Terlambat ST</div>
+        <div class="kpi-value">${K.terlambat || 0}</div>
+        <div class="kpi-sub">Rata-rata ${K.rataTelatHari || 0} hari</div>
+      </article>
+      <article class="kpi-card">
+        <div class="kpi-label">Close</div>
+        <div class="kpi-value">${K.close || 0}</div>
+        <div class="kpi-sub">Serah terima selesai</div>
+      </article>
+      <article class="kpi-card">
+        <div class="kpi-label">Serapan Konstruksi</div>
+        <div class="kpi-value">${F.pct(D.BUDGET.konstruksiSerapan || 0)}</div>
+        <div class="kpi-sub">${F.IDR(D.BUDGET.konstruksiRealisasi, 'compact')} / ${F.IDR(D.BUDGET.konstruksiAnggaran, 'compact')}</div>
+      </article>
+    </section>
+
+    <div class="zone zone-2-6-6">
+      <article class="card">
+        <div class="card-header">
+          <h3 class="card-title">Unit berisiko (progres rendah / lewat ST)</h3>
+          <div class="card-actions"><a class="btn btn-ghost btn-sm" href="progres.html">Progres</a></div>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Kavling</th><th>Proyek</th><th class="num">Progres</th><th class="num">Telat ST</th><th>Kontraktor</th></tr></thead>
+            <tbody>${riskRows}</tbody>
+          </table>
+        </div>
+        <p class="text-muted mt-2" style="font-size:12px">Sumber: kavling.json (progresBangun, tglSerahTerima)</p>
+      </article>
+      <article class="card">
+        <div class="card-header">
+          <h3 class="card-title">Kurva-S <span class="text-muted" style="font-weight:400;font-size:12px">(indikatif)</span></h3>
+        </div>
+        <div style="height:160px;display:flex;align-items:flex-end;gap:4px;padding:12px 0">
+          ${[10,18,28,35,42,48,55,58,62,65,68,70].map(function (v, i) {
+            const plan = [8,15,25,38,50,60,70,78,85,90,95,100][i];
+            return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;height:100%;justify-content:flex-end">' +
+              '<div style="width:100%;background:var(--viz-actual);height:' + v + '%;border-radius:3px 3px 0 0;opacity:.9" title="Aktual ' + v + '%"></div>' +
+              '<div style="width:100%;background:var(--viz-plan);height:' + Math.max(0, plan - v) + '%;opacity:.5" title="Rencana ' + plan + '%"></div>' +
+              '</div>';
+          }).join('')}
+        </div>
+        <div class="flex-between text-muted" style="font-size:11px"><span>Okt 25</span><span>Sep 26</span></div>
+        <p class="text-muted mt-2" style="font-size:11px">Kurva indikatif — belum ada time-series progres bulanan di data layer</p>
+      </article>
+    </div>
+
+    <article class="card mt-4">
+      <div class="card-header">
+        <h3 class="card-title">Catatan progres terbaru</h3>
+        <div class="card-actions"><a class="btn btn-ghost btn-sm" href="progres.html">Semua</a></div>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Kavling</th><th>Cluster</th><th class="num">%</th><th>Tanggal</th><th>Oleh</th></tr></thead>
+          <tbody>${progresRows || '<tr><td colspan="5" class="text-muted">Tidak ada data progres.json</td></tr>'}</tbody>
+        </table>
+      </div>
+    </article>
+  `;
+  AdhShell.mount({ role: 'Teknik', title: 'Home Teknik', content });
+});
+</script>
+</body>
+</html>

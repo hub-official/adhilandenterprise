@@ -1,0 +1,350 @@
+{
+  "AS_OF": "2026-10-02T12:00:00+07:00",
+  "SOURCE": "database CSV extract 2026-10-02",
+  "PROJECTS": [
+    {
+      "id": "joyo",
+      "name": "EazyKost Joyo Agung",
+      "short": "Joyo",
+      "kode": "joyo-agung",
+      "alamat": "",
+      "npwp": ""
+    },
+    {
+      "id": "sigura",
+      "name": "EazyKost Sigura-gura",
+      "short": "Sigura",
+      "kode": "siguragura",
+      "alamat": "",
+      "npwp": ""
+    },
+    {
+      "id": "lumiera",
+      "name": "Lumiera Garden",
+      "short": "Lumiera",
+      "kode": "lumiera",
+      "alamat": "",
+      "npwp": ""
+    },
+    {
+      "id": "resort",
+      "name": "Mayana Resort",
+      "short": "Resort",
+      "kode": "mayana",
+      "alamat": "",
+      "npwp": ""
+    },
+    {
+      "id": "mayana2",
+      "name": "Mayana II",
+      "short": "Mayana II",
+      "kode": "tahap2",
+      "alamat": "DAU Sumbersekar",
+      "npwp": ""
+    }
+  ],
+  "KAS": {
+    "total": 75308483,
+    "byProject": {
+      "joyo": 0,
+      "sigura": 0,
+      "lumiera": 75308483,
+      "resort": 0,
+      "mayana2": 0
+    }
+  },
+  "SALES": {
+    "ppjb": 103944800000,
+    "uangMasuk": 13286720000,
+    "sisaTagihan": 90658080000,
+    "rasioMasuk": 0.1278,
+    "kavlingTerjual": 63,
+    "byProject": {
+      "joyo": {
+        "ppjb": 20378800000,
+        "masuk": 0,
+        "sisa": 20378800000,
+        "rasio": 1.0,
+        "n": 14
+      },
+      "sigura": {
+        "ppjb": 49973000000,
+        "masuk": 0,
+        "sisa": 49973000000,
+        "rasio": 1.0,
+        "n": 18
+      },
+      "lumiera": {
+        "ppjb": 32315000000,
+        "masuk": 13286720000,
+        "sisa": 19028280000,
+        "rasio": 0.5888,
+        "n": 29
+      },
+      "resort": {
+        "ppjb": 1278000000,
+        "masuk": 0,
+        "sisa": 1278000000,
+        "rasio": 1.0,
+        "n": 2
+      },
+      "mayana2": {
+        "ppjb": 0,
+        "masuk": 0,
+        "sisa": 0,
+        "rasio": 0.0,
+        "n": 0
+      }
+    }
+  },
+  "STOK": {
+    "belumTerjual": 43,
+    "potensi": 61825100000,
+    "funnel": {
+      "belum": 43,
+      "dealBelumBayar": 47,
+      "bertahap": 13,
+      "cash": 3
+    }
+  },
+  "LIABILITAS": {
+    "hutang": 4857423995,
+    "piutangUsaha": 151678383,
+    "piutangKaryawan": 0,
+    "piutangLain": 0
+  },
+  "BUDGET": {
+    "anggaran": 2502827936,
+    "realisasi": 0,
+    "serapan": 0.0,
+    "jatuhTempo": {
+      "n": 21,
+      "nilai": 1077915700
+    },
+    "pengajuanMenunggu": {
+      "n": 80,
+      "nilai": 2767325772,
+      "tertuaHari": 17
+    },
+    "konstruksiSerapan": 0.044,
+    "konstruksiAnggaran": 42680000000,
+    "konstruksiRealisasi": 1880000000
+  },
+  "CASH_COVER": {
+    "rasio": 0.0196,
+    "kebutuhanBayar": 3845241472,
+    "selisih": -3769932989
+  },
+  "KONSTRUKSI": {
+    "total": 63,
+    "onProgress": 55,
+    "terlambat": 0,
+    "close": 8,
+    "rataTelatHari": 0,
+    "maxTelatHari": 0
+  },
+  "LEGAL": {
+    "done": 9,
+    "target": 448,
+    "pct": 0.020089285714285716,
+    "rows": 64
+  },
+  "DASH_BY_PROJECT": {
+    "joyo": {
+      "kas": 0,
+      "ppjb": 20378800000,
+      "masuk": 0,
+      "sisa": 20378800000,
+      "unitTerjual": 14,
+      "unitBelum": 0,
+      "stokNilai": 0,
+      "hutang": 0,
+      "piutangUsaha": 0,
+      "rasio": 1.0,
+      "bank": 0,
+      "brankas": 0,
+      "kasKecil": 0,
+      "piutangUser": 0,
+      "totalPiutang": 0
+    },
+    "sigura": {
+      "kas": 0,
+      "ppjb": 49973000000,
+      "masuk": 0,
+      "sisa": 49973000000,
+      "unitTerjual": 18,
+      "unitBelum": 0,
+      "stokNilai": 0,
+      "hutang": 0,
+      "piutangUsaha": 0,
+      "rasio": 1.0,
+      "bank": 0,
+      "brankas": 0,
+      "kasKecil": 0,
+      "piutangUser": 0,
+      "totalPiutang": 0
+    },
+    "lumiera": {
+      "kas": 75308483,
+      "ppjb": 32315000000,
+      "masuk": 13286720000,
+      "sisa": 19028280000,
+      "unitTerjual": 29,
+      "unitBelum": 0,
+      "stokNilai": 0,
+      "hutang": 4857423995,
+      "piutangUsaha": 151678383,
+      "rasio": 0.5888,
+      "bank": 74947964,
+      "brankas": 139572,
+      "kasKecil": 220947,
+      "piutangUser": 0,
+      "totalPiutang": 151678383
+    },
+    "resort": {
+      "kas": 0,
+      "ppjb": 1278000000,
+      "masuk": 0,
+      "sisa": 1278000000,
+      "unitTerjual": 2,
+      "unitBelum": 0,
+      "stokNilai": 0,
+      "hutang": 0,
+      "piutangUsaha": 0,
+      "rasio": 1.0,
+      "bank": 0,
+      "brankas": 0,
+      "kasKecil": 0,
+      "piutangUser": 0,
+      "totalPiutang": 0
+    },
+    "mayana2": {
+      "kas": 0,
+      "ppjb": 0,
+      "masuk": 0,
+      "sisa": 0,
+      "unitTerjual": 0,
+      "unitBelum": 0,
+      "stokNilai": 0,
+      "hutang": 0,
+      "piutangUsaha": 0,
+      "rasio": 0.0,
+      "bank": 0,
+      "brankas": 0,
+      "kasKecil": 0,
+      "piutangUser": 0,
+      "totalPiutang": 0
+    }
+  },
+  "DECISIONS": [
+    {
+      "id": 1,
+      "title": "80 pengajuan menunggu — Rp 2767.33 jt; tertua 17 hari",
+      "severity": "critical",
+      "meta": "Nilai total Rp 2.767.325.772",
+      "action": "Tinjau",
+      "href": "pengajuan.html"
+    },
+    {
+      "id": 2,
+      "title": "Kas menutup 1.7% kebutuhan bayar",
+      "severity": "critical",
+      "meta": "Selisih Rp -4488.25 jt vs pengajuan + jatuh tempo",
+      "action": "Lihat jembatan kas",
+      "href": "arus-kas.html"
+    },
+    {
+      "id": 3,
+      "title": "21 item budgeting lewat jatuh tempo",
+      "severity": "critical",
+      "meta": "Nilai Rp 1.077.915.700",
+      "action": "Buka Budgeting",
+      "href": "budgeting.html"
+    },
+    {
+      "id": 5,
+      "title": "Kelengkapan legal 2.0% (9/448 dokumen)",
+      "severity": "critical",
+      "meta": "Target 448 dokumen",
+      "action": "Buka Legal",
+      "href": "../Legal/index.html"
+    }
+  ],
+  "PROJECT_HEALTH": [
+    {
+      "id": "joyo",
+      "name": "EazyKost Joyo Agung",
+      "short": "Joyo",
+      "kas": 0,
+      "ppjb": 20378800000,
+      "masuk": 0,
+      "rasio": 1.0,
+      "serapan": 0,
+      "telatST": 0,
+      "status": "critical",
+      "konstruksiTelat": 0,
+      "skor": "critical",
+      "skorLabel": "Kritis"
+    },
+    {
+      "id": "sigura",
+      "name": "EazyKost Sigura-gura",
+      "short": "Sigura",
+      "kas": 0,
+      "ppjb": 49973000000,
+      "masuk": 0,
+      "rasio": 1.0,
+      "serapan": 0,
+      "telatST": 0,
+      "status": "critical",
+      "konstruksiTelat": 0,
+      "skor": "critical",
+      "skorLabel": "Kritis"
+    },
+    {
+      "id": "lumiera",
+      "name": "Lumiera Garden",
+      "short": "Lumiera",
+      "kas": 75308483,
+      "ppjb": 32315000000,
+      "masuk": 13286720000,
+      "rasio": 0.5888,
+      "serapan": 0,
+      "telatST": 0,
+      "status": "ok",
+      "konstruksiTelat": 0,
+      "skor": "ok",
+      "skorLabel": "Sehat"
+    },
+    {
+      "id": "resort",
+      "name": "Mayana Resort",
+      "short": "Resort",
+      "kas": 0,
+      "ppjb": 1278000000,
+      "masuk": 0,
+      "rasio": 1.0,
+      "serapan": 0,
+      "telatST": 0,
+      "status": "critical",
+      "konstruksiTelat": 0,
+      "skor": "critical",
+      "skorLabel": "Kritis"
+    },
+    {
+      "id": "mayana2",
+      "name": "Mayana II",
+      "short": "Mayana II",
+      "kas": 0,
+      "ppjb": 0,
+      "masuk": 0,
+      "rasio": 0.0,
+      "serapan": 0,
+      "telatST": 0,
+      "status": "warn",
+      "konstruksiTelat": 0,
+      "skor": "warn",
+      "skorLabel": "Waspada"
+    }
+  ]
+}

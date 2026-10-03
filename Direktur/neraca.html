@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Neraca — Adhiland Finance</title>
+<script>(function(){try{var t=localStorage.getItem('adh_theme');document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/app.css">
+</head>
+<body>
+<div id="app"></div>
+<script src="../assets/js/fmt.js"></script>
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/shell.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async function () {
+  await AdhData.load();
+  var F = fmt, D = AdhData;
+  var kas = (D.KAS && D.KAS.total) || 0;
+  var piutang = (D.LIABILITAS && D.LIABILITAS.piutangUsaha) || 0;
+  var hutang = (D.LIABILITAS && D.LIABILITAS.hutang) || 0;
+  var stokPotensi = (D.STOK && D.STOK.potensi) || 0;
+  var sisaTagihan = (D.SALES && D.SALES.sisaTagihan) || 0;
+
+  // Hanya angka yang ada di snapshot — tanpa invent dummy aktiva tetap / modal fiktif
+  var aktiva = [
+    {kode:'1.01', nama:'Kas & Bank', saldo: kas, group:true, src:'snapshot'},
+    {kode:'1.01.01', nama:'Kas Lumiera Garden', saldo: (D.KAS.byProject && D.KAS.byProject.lumiera) || kas, src:'snapshot'},
+    {kode:'1.01.02', nama:'Kas proyek lain', saldo: kas - ((D.KAS.byProject && D.KAS.byProject.lumiera) || kas), src:'snapshot'},
+    {kode:'1.02', nama:'Piutang Usaha', saldo: piutang, group:true, src:'snapshot'},
+    {kode:'1.02.01', nama:'Piutang dari jurnal', saldo: piutang, src:'snapshot'},
+    {kode:'1.03', nama:'Sisa tagihan PPJB (piutang konsumen)', saldo: sisaTagihan, group:true, src:'snapshot'},
+    {kode:'1.04', nama:'Stok belum terjual (nilai potensi)', saldo: stokPotensi, group:true, src:'proxy'}
+  ];
+  var kewajiban = [
+    {kode:'2.01', nama:'Hutang Usaha', saldo: hutang, group:true, src:'snapshot'},
+    {kode:'2.01.01', nama:'Hutang (konsolidasi snapshot)', saldo: hutang, src:'snapshot'}
+  ];
+
+  var totalAktiva = aktiva.filter(function (a) { return a.group; }).reduce(function (s, a) { return s + a.saldo; }, 0);
+  var totalKewajiban = kewajiban.filter(function (a) { return a.group; }).reduce(function (s, a) { return s + a.saldo; }, 0);
+  // Modal residual = aktiva − kewajiban (bukan angka dummy)
+  var modalResidual = totalAktiva - totalKewajiban;
+  kewajiban.push({kode:'3.01', nama:'Modal & ekuitas (residual / balancing)', saldo: modalResidual, group:true, src:'proxy'});
+  var totalKM = totalKewajiban + modalResidual;
+
+  function rows(list) {
+    return list.map(function (a) {
+      var tag = a.src === 'proxy' ? ' <span class="text-muted" style="font-size:10px">(proxy)</span>' : '';
+      return '<tr' + (a.group ? ' style="font-weight:600;background:var(--surface-2)"' : '') + '>' +
+        '<td>' + a.kode + '</td><td>' + a.nama + tag + '</td>' +
+        '<td class="num">' + F.IDR(a.saldo, 'compact') + '</td></tr>';
+    }).join('');
+  }
+
+  var html =
+    '<div class="global-bar">' +
+      '<span class="filter-label">Neraca ringkas</span>' +
+      '<span class="text-muted" style="font-size:12px;margin-left:auto">Per ' + F.dateTime(D.AS_OF) + ' · tanpa baris dummy invent</span>' +
+    '</div>' +
+    '<section class="kpi-grid" style="grid-template-columns:repeat(3,1fr)">' +
+      '<article class="kpi-card"><div class="kpi-label">Total Aktiva</div><div class="kpi-value">' + F.IDR(totalAktiva, 'compact') + '</div>' +
+        '<div class="kpi-sub">Kas + piutang + stok potensi</div></article>' +
+      '<article class="kpi-card"><div class="kpi-label">Kewajiban</div><div class="kpi-value">' + F.IDR(totalKewajiban, 'compact') + '</div></article>' +
+      '<article class="kpi-card"><div class="kpi-label">Modal residual</div><div class="kpi-value">' + F.IDR(modalResidual, 'compact') + '</div>' +
+        '<div class="kpi-sub">Aktiva − Hutang (proxy balancing)</div></article>' +
+    '</section>' +
+    '<div class="zone zone-2-6-6">' +
+      '<article class="card"><div class="card-header"><h3 class="card-title">Aktiva</h3></div>' +
+        '<div class="table-wrap"><table class="data-table"><thead><tr><th>Kode</th><th>Nama</th><th class="num">Saldo</th></tr></thead><tbody>' + rows(aktiva) + '</tbody></table></div></article>' +
+      '<article class="card"><div class="card-header"><h3 class="card-title">Kewajiban &amp; Modal</h3></div>' +
+        '<div class="table-wrap"><table class="data-table"><thead><tr><th>Kode</th><th>Nama</th><th class="num">Saldo</th></tr></thead><tbody>' + rows(kewajiban) + '</tbody></table></div></article>' +
+    '</div>' +
+    '<p class="text-muted mt-2" style="font-size:12px">Sumber snapshot: KAS, LIABILITAS, SALES.sisaTagihan, STOK.potensi. Baris bertanda (proxy) = turunan, bukan akun buku besar penuh. Aktiva tetap / laba ditahan dummy dihapus.</p>';
+
+  AdhShell.mount({ role: 'Direktur', title: 'Neraca', content: html });
+});
+</script>
+</body>
+</html>

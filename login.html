@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Masuk — Adhiland Finance</title>
+<script>
+(function(){try{var t=localStorage.getItem('adh_theme');
+document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}
+catch(e){document.documentElement.setAttribute('data-theme','light');}})();
+</script>
+<link rel="stylesheet" href="assets/css/tokens.css">
+<link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body>
+<div class="login-page">
+  <div class="login-card">
+    <div class="login-logo">
+      <img src="assets/img/Adhiland-transparent.png" alt="Adhiland" height="40">
+    </div>
+    <h1 class="login-title">Adhiland Finance</h1>
+    <p class="login-sub">Pilih peran untuk masuk ke mockup interaktif</p>
+
+    <div class="form-group">
+      <label class="form-label">Peran</label>
+      <div class="role-grid" id="role-grid">
+        <button class="role-btn active" data-role="Direktur" type="button">Direktur</button>
+        <button class="role-btn" data-role="Legal" type="button">Legal</button>
+        <button class="role-btn" data-role="Teknik" type="button">Teknik</button>
+        <button class="role-btn" data-role="Marketing" type="button">Marketing</button>
+        <button class="role-btn" data-role="Operasional" type="button">Operasional</button>
+        <button class="role-btn" data-role="Finance" type="button">Finance</button>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="email">Email</label>
+      <input class="form-input" id="email" type="email" value="direktur@adhiland.id" autocomplete="username">
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="password">Kata sandi</label>
+      <input class="form-input" id="password" type="password" value="••••••••" autocomplete="current-password">
+    </div>
+
+    <button class="btn btn-primary btn-lg" style="width:100%" id="btn-login" type="button">Masuk</button>
+
+    <p class="text-muted mt-4" style="font-size:12px;text-align:center">
+      Mockup UI/UX 2.0 · Data snapshot 30 Sep 2026 · Tema: <button id="theme-toggle" class="btn-icon" style="display:inline-flex;vertical-align:middle" type="button"><svg class="ui-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 14.6A8.5 8.5 0 0 1 9.4 3.2 8.5 8.5 0 1 0 20.8 14.6Z"/></svg></button>
+    </p>
+  </div>
+</div>
+
+<script src="assets/js/theme.js"></script>
+<script>
+(function () {
+  let selected = 'Direktur';
+  const routes = {
+    Direktur: 'Direktur/index.html',
+    Legal: 'Legal/index.html',
+    Teknik: 'Teknik/index.html',
+    Marketing: 'Marketing/index.html',
+    Operasional: 'Operasional/index.html',
+    Finance: 'Finance/index.html'
+  };
+
+  document.querySelectorAll('.role-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selected = btn.dataset.role;
+      document.getElementById('email').value = selected.toLowerCase() + '@adhiland.id';
+    });
+  });
+
+  document.getElementById('btn-login').addEventListener('click', () => {
+    window.location.href = routes[selected] || routes.Direktur;
+  });
+
+  document.getElementById('password').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('btn-login').click();
+  });
+})();
+</script>
+</body>
+</html>

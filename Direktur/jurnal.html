@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jurnal — Adhiland Finance</title>
+<script>(function(){try{var t=localStorage.getItem('adh_theme');document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/app.css">
+</head>
+<body>
+<div id="app"></div>
+<script src="../assets/js/fmt.js"></script>
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/shell.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async function () {
+  const F = fmt;
+  await AdhData.load();
+  let page = 1;
+  const size = 50;
+  let allRows = [];
+  let search = '';
+
+  const report = await AdhData.loadReport('jurnal');
+  allRows = report.rows || [];
+
+  function render() {
+    let filtered = allRows;
+    if (search) {
+      const q = search.toLowerCase();
+      filtered = allRows.filter(r =>
+        (r.ref||'').toLowerCase().includes(q) ||
+        (r.deskripsi||'').toLowerCase().includes(q) ||
+        (r.perusahaan||'').toLowerCase().includes(q)
+      );
+    }
+    const pg = AdhData.paginate(filtered, page, size);
+    const totalJumlah = filtered.reduce((s, r) => s + (r.jumlah || 0), 0);
+    const rows = pg.rows.map(r => `<tr>
+      <td>${r.perusahaan||'—'}</td>
+      <td>${r.tanggal||'—'}</td>
+      <td>${r.tipe||'—'}</td>
+      <td>${r.ref||'—'}</td>
+      <td>${r.deskripsi||'—'}</td>
+      <td>${r.akunDb||'—'}</td>
+      <td>${r.akunKr||'—'}</td>
+      <td class="num">${F.IDR(r.jumlah,'compact')}</td>
+    </tr>`).join('');
+
+    const content = `
+    <div class="global-bar">
+      <div class="filter-group">
+        <input class="form-input" id="search-jurnal" style="width:200px;height:32px" placeholder="Cari ref/uraian" value="${search}">
+      </div>
+      <div class="filter-group" style="margin-left:auto">
+        <button class="btn btn-secondary btn-sm">Export Excel</button>
+      </div>
+    </div>
+    <section class="kpi-grid" style="grid-template-columns:repeat(3,1fr)">
+      <article class="kpi-card"><div class="kpi-label">Total baris</div><div class="kpi-value">${filtered.length.toLocaleString('id-ID')}</div></article>
+      <article class="kpi-card"><div class="kpi-label">Jumlah (halaman filter)</div><div class="kpi-value">${F.IDR(totalJumlah,'compact')}</div></article>
+      <article class="kpi-card"><div class="kpi-label">Halaman</div><div class="kpi-value">${pg.page} / ${pg.pages}</div><div class="kpi-sub">${size} baris/halaman</div></article>
+    </section>
+    <article class="card">
+      <div class="card-header"><h3 class="card-title">Jurnal umum</h3></div>
+      <div class="table-wrap"><table class="data-table">
+        <thead><tr><th>Proyek</th><th>Tanggal</th><th>Tipe</th><th>Ref</th><th>Deskripsi</th><th>Akun DB</th><th>Akun KR</th><th class="num">Jumlah</th></tr></thead>
+        <tbody>${rows || '<tr><td colspan="8">Tidak ada data</td></tr>'}</tbody>
+      </table></div>
+      <div class="flex-between mt-3" style="align-items:center">
+        <p class="text-muted" style="font-size:12px">Sumber: jurnal.csv · ${report.total||allRows.length} baris total</p>
+        <div class="flex gap-2">
+          <button class="btn btn-secondary btn-sm" id="prev-page" ${page<=1?'disabled':''}>← Prev</button>
+          <button class="btn btn-secondary btn-sm" id="next-page" ${page>=pg.pages?'disabled':''}>Next →</button>
+        </div>
+      </div>
+    </article>`;
+    AdhShell.mount({ role: 'Direktur', title: 'Jurnal', content: content });
+
+    document.getElementById('prev-page')?.addEventListener('click', () => { page--; render(); });
+    document.getElementById('next-page')?.addEventListener('click', () => { page++; render(); });
+    const searchEl = document.getElementById('search-jurnal');
+    if (searchEl) {
+      searchEl.addEventListener('keydown', e => {
+        if (e.key === 'Enter') { search = searchEl.value; page = 1; render(); }
+      });
+    }
+  }
+  render();
+});
+</script>
+</body>
+</html>

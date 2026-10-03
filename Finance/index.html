@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Home Finance — Adhiland</title>
+<script>
+(function(){try{var t=localStorage.getItem('adh_theme');
+document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}
+catch(e){document.documentElement.setAttribute('data-theme','light');}})();
+</script>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/app.css">
+</head>
+<body>
+<div id="app"></div>
+<script src="../assets/js/fmt.js"></script>
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/local-state.js"></script>
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/shell.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async function () {
+  const F = fmt;
+  const ROLE = 'Finance';
+  const LS = window.AdhLocalState;
+  await AdhData.load();
+  const snap = LS.getFinanceSnapshot ? LS.getFinanceSnapshot() : {};
+  const limit = LS.LIMIT_APPROVE_FINANCE || 10000000;
+
+  const content =
+  '<p class="text-muted" style="font-size:12px;margin:0 0 12px">Workspace <strong>Finance</strong> — review kelengkapan/budget, bayar mock. Final kas di atas limit tetap ke Direktur.</p>' +
+  '<section class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">' +
+    '<article class="kpi-card">' +
+      '<div class="kpi-label">Antrian review</div>' +
+      '<div class="kpi-value">' + (snap.reviewN || 0) + '</div>' +
+      '<div class="kpi-sub">' + F.IDR(snap.review || 0, 'compact') + '</div>' +
+    '</article>' +
+    '<article class="kpi-card">' +
+      '<div class="kpi-label">Siap bayar</div>' +
+      '<div class="kpi-value">' + (snap.commitN || 0) + '</div>' +
+      '<div class="kpi-sub">' + F.IDR(snap.commit || 0, 'compact') + '</div>' +
+    '</article>' +
+    '<article class="kpi-card">' +
+      '<div class="kpi-label">Kas (mock)</div>' +
+      '<div class="kpi-value">' + F.IDR(snap.kas || 0, 'compact') + '</div>' +
+      '<div class="kpi-sub">setelah mock bayar</div>' +
+    '</article>' +
+    '<article class="kpi-card">' +
+      '<div class="kpi-label">Limit approve Finance</div>' +
+      '<div class="kpi-value">' + F.IDR(limit, 'compact') + '</div>' +
+      '<div class="kpi-sub">≤ limit: boleh Setujui · &gt; limit: Loloskan ke Direktur</div>' +
+    '</article>' +
+  '</section>' +
+  '<div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap">' +
+    '<a class="btn btn-primary" href="review.html">Buka Antrian Review</a>' +
+    '<a class="btn btn-ghost" href="siap-bayar.html">Siap Bayar</a>' +
+    '<a class="btn btn-ghost" href="../Direktur/tata-kelola.html">Tata Kelola (Direktur)</a>' +
+  '</div>' +
+  '<article class="card" style="margin-top:16px">' +
+    '<p style="margin:0;font-size:13px"><strong>Wewenang F6</strong></p>' +
+    '<ul style="margin:8px 0 0;padding-left:18px;font-size:12px;color:var(--text-muted, #666)">' +
+      '<li>Review: Loloskan → Menunggu Direktur, atau Kembalikan + alasan</li>' +
+      '<li>Jika nominal ≤ ' + F.IDR(limit) + ': tombol <em>Setujui (limit)</em> langsung ke Disetujui</li>' +
+      '<li>Tandai dibayar pada item Disetujui (sama F4)</li>' +
+      '<li>Tanpa menu laporan penuh Direktur (neraca, jurnal, …)</li>' +
+    '</ul>' +
+  '</article>';
+
+  AdhShell.mount({ role: ROLE, title: 'Home Finance', content: content });
+});
+</script>
+</body>
+</html>

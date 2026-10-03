@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tempat Sampah — Adhiland Finance</title>
+<script>(function(){try{var t=localStorage.getItem('adh_theme');document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/app.css">
+</head>
+<body>
+<div id="app"></div>
+<script src="../assets/js/fmt.js"></script>
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/shell.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async function () {
+  if (window.AdhData && AdhData.load) await AdhData.load();
+  var rows = '';
+  for (var i=1;i<=10;i++) {
+    rows += '<tr><td>'+i+'</td><td>Pengajuan dihapus (dummy) #'+i+'</td><td>12 Sep 2026</td><td>Direktur</td><td><button class="btn btn-secondary btn-sm">Pulihkan (mock)</button> <button class="btn btn-ghost btn-sm">Hapus permanen (mock)</button></td></tr>';
+  }
+  var html = '<div class="global-bar"><span class="filter-label">Tempat Sampah</span></div>';
+  html += '<article class="card"><div class="card-header"><h3 class="card-title">Item terhapus (tanpa kunci teknis mentah)</h3></div>';
+  html += '<div class="table-wrap"><table class="data-table"><thead><tr><th>#</th><th>Deskripsi</th><th>Dihapus</th><th>Oleh</th><th>Aksi</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+  html += '<p class="text-muted mt-2" style="font-size:12px">Kolom teknis (fund_request, dll.) tidak ditampilkan \u2014 diganti deskripsi manusiawi</p></article>';
+  AdhShell.mount({ role: 'Direktur', title: 'Tempat Sampah', content: html });
+});
+</script>
+</body>
+</html>

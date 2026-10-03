@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Budgeting — Adhiland Finance</title>
+<script>
+(function(){try{var t=localStorage.getItem('adh_theme');
+document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}
+catch(e){document.documentElement.setAttribute('data-theme','light');}})();
+</script>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/app.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div id="app"></div>
+<script src="../assets/js/fmt.js"></script>
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/shell.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async function () {
+  await AdhData.load();
+  const D = AdhData, F = fmt;
+
+  const raw = await D.loadReport('budgeting_item');
+  const items = Array.isArray(raw) ? raw : (raw.rows || []);
+
+  // Agregat per proyek (cluster)
+  const byProject = {};
+  items.forEach(function (r) {
+    const key = r.cluster || 'Lainnya';
+    if (!byProject[key]) byProject[key] = { name: key, rencana: 0, terbayar: 0, sisa: 0, n: 0 };
+    byProject[key].rencana += r.rencana || 0;
+    byProject[key].terbayar += r.terbayar || 0;
+    byProject[key].sisa += r.sisa || 0;
+    byProject[key].n += 1;
+  });
+  const projectRows = Object.values(byProject).sort(function (a, b) { return b.rencana - a.rencana; });
+
+  // Agregat per jenis untuk chart
+  const byJenis = {};
+  items.forEach(function (r) {
+    const key = (r.jenis || 'Lainnya').trim() || 'Lainnya';
+    if (!byJenis[key]) byJenis[key] = { rencana: 0, terbayar: 0 };
+    byJenis[key].rencana += r.rencana || 0;
+    byJenis[key].terbayar += r.terbayar || 0;
+  });
+  const jenisKeys = Object.keys(byJenis).sort(function (a, b) {
+    return byJenis[b].rencana - byJenis[a].rencana;
+  }).slice(0, 6);
+
+  // Item jatuh tempo (sisa > 0 dan tanggal <= hari ini + 14 hari, atau status belum dibayar)
+  const now = new Date();
+  const horizon = new Date(now.getTime() + 14 * 86400000);
+  const dueItems = items.filter(function (r) {
+    if ((r.sisa || 0) <= 0) return false;
+    if (!r.jatuhTempo) return (r.status || '').toLowerCase().indexOf('belum') >= 0;
+    const t = new Date(r.jatuhTempo);
+    return !isNaN(t) && t <= horizon;
+  }).sort(function (a, b) {
+    return new Date(a.jatuhTempo || 0) - new Date(b.jatuhTempo || 0);
+  }).slice(0, 8);
+
+  const projColor = function (name) {
+    const n = (name || '').toLowerCase();
+    if (n.indexOf('lumiera') >= 0) return 'var(--proj-lumiera)';
+    if (n.indexOf('joyo') >= 0) return 'var(--proj-joyo)';
+    if (n.indexOf('sigura') >= 0) return 'var(--proj-sigura)';
+    if (n.indexOf('resort') >= 0 || n.indexOf('mayana resort') >= 0) return 'var(--proj-resort)';
+    if (n.indexOf('mayana') >= 0) return 'var(--proj-mayana2)';
+    return 'var(--primary)';
+  };
+
+  const summaryRows = projectRows.map(function (p) {
+    const pct = p.rencana ? Math.round((p.terbayar / p.rencana) * 100) : 0;
+    return '<tr>' +
+      '<td>' + p.name + ' <span class="text-muted" style="font-size:11px">(' + p.n + ')</span></td>' +
+      '<td class="num">' + F.IDR(p.rencana, 'compact') + '</td>' +
+      '<td class="num">' + F.IDR(p.terbayar, 'compact') + '</td>' +
+      '<td><div class="in-cell-bar"><div class="bar-track"><div class="bar-fill" style="width:' + Math.min(100, pct) + '%;background:' + projColor(p.name) + '"></div></div><span>' + pct + '%</span></div></td>' +
+      '<td class="num">' + F.IDR(p.sisa, 'compact') + '</td>' +
+      '</tr>';
+  }).join('') || '<tr><td colspan="5" class="text-muted">Tidak ada data</td></tr>';
+
+  const dueRows = dueItems.map(function (r) {
+    const t = r.jatuhTempo ? new Date(r.jatuhTempo) : null;
+    const overdue = t && t < now;
+    return '<tr>' +
+      '<td>' + (r.deskripsi || '—').slice(0, 48) + (r.deskripsi && r.deskripsi.length > 48 ? '…' : '') + '</td>' +
+      '<td>' + (r.cluster || '—') + '</td>' +
+      '<td class="num">' + F.IDR(r.sisa || r.rencana || 0, 'compact') + '</td>' +
+      '<td style="color:' + (overdue ? 'var(--danger)' : 'var(--warning)') + '">' + (r.jatuhTempo || '—') + '</td>' +
+      '</tr>';
+  }).join('') || '<tr><td colspan="4" class="text-muted">Tidak ada item jatuh tempo dalam 14 hari</td></tr>';
+
+  const content = `
+    <div class="global-bar">
+      <div class="filter-group">
+        <span class="filter-label">Budgeting</span>
+      </div>
+      <span class="text-muted" style="font-size:12px;margin-left:auto">${items.length} item · data per ${F.dateTime(D.AS_OF)}</span>
+    </div>
+
+    <section class="kpi-grid">
+      <article class="kpi-card">
+        <div class="kpi-label">Total Anggaran</div>
+        <div class="kpi-value">${F.IDR(D.BUDGET.anggaran, 'compact')}</div>
+        <div class="kpi-sub">Dari aggregate · item sum ${F.IDR(items.reduce(function(s,r){return s+(r.rencana||0);},0), 'compact')}</div>
+      </article>
+      <article class="kpi-card">
+        <div class="kpi-label">Realisasi</div>
+        <div class="kpi-value">${F.IDR(D.BUDGET.realisasi, 'compact')}</div>
+      </article>
+      <article class="kpi-card">
+        <div class="kpi-label">Serapan</div>
+        <div class="kpi-value">${F.pct(D.BUDGET.serapan)}</div>
+      </article>
+      <article class="kpi-card">
+        <div class="kpi-label">Jatuh tempo <span class="status-badge rag-bad">Perhatian</span></div>
+        <div class="kpi-value">${D.BUDGET.jatuhTempo.n}</div>
+        <div class="kpi-sub">${F.IDR(D.BUDGET.jatuhTempo.nilai, 'compact')}</div>
+      </article>
+    </section>
+
+    <div class="zone zone-2-7-5">
+      <article class="card">
+        <div class="card-header">
+          <h3 class="card-title">Anggaran vs Realisasi per jenis</h3>
+        </div>
+        <div class="chart-container"><canvas id="chart-budget"></canvas></div>
+        <p class="text-muted mt-2" style="font-size:11px">Sumber: budgeting_item.json (agregat jenis)</p>
+      </article>
+      <article class="card">
+        <div class="card-header">
+          <h3 class="card-title">Item jatuh tempo (≤14 hari)</h3>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Item</th><th>Proyek</th><th class="num">Sisa</th><th>Jatuh tempo</th></tr></thead>
+            <tbody>${dueRows}</tbody>
+          </table>
+        </div>
+      </article>
+    </div>
+
+    <article class="card">
+      <div class="card-header">
+        <h3 class="card-title">Ringkasan per proyek / cluster</h3>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Proyek</th>
+              <th class="num">Anggaran</th>
+              <th class="num">Realisasi</th>
+              <th>Serapan</th>
+              <th class="num">Sisa</th>
+            </tr>
+          </thead>
+          <tbody>${summaryRows}</tbody>
+        </table>
+      </div>
+      <p class="text-muted mt-2" style="font-size:12px">Sumber: budgeting_item.json — bukan hardcode</p>
+    </article>
+  `;
+  AdhShell.mount({ role: 'Direktur', title: 'Budgeting', content });
+
+  const ctx = document.getElementById('chart-budget');
+  if (ctx && window.Chart) {
+    const axisColor = getComputedStyle(document.documentElement).getPropertyValue('--viz-axis').trim();
+    const gridColor = getComputedStyle(document.documentElement).getPropertyValue('--viz-grid').trim();
+    const planColor = getComputedStyle(document.documentElement).getPropertyValue('--viz-plan').trim();
+    const actualColor = getComputedStyle(document.documentElement).getPropertyValue('--viz-actual').trim();
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: jenisKeys,
+        datasets: [
+          {
+            label: 'Anggaran',
+            data: jenisKeys.map(function (k) { return Math.round((byJenis[k].rencana || 0) / 1e6); }),
+            backgroundColor: planColor,
+            borderRadius: 4
+          },
+          {
+            label: 'Realisasi',
+            data: jenisKeys.map(function (k) { return Math.round((byJenis[k].terbayar || 0) / 1e6); }),
+            backgroundColor: actualColor,
+            borderRadius: 4
+          }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: axisColor, boxWidth: 12 } } },
+        scales: {
+          x: { ticks: { color: axisColor, maxRotation: 45, minRotation: 0 }, grid: { display: false } },
+          y: { ticks: { color: axisColor, callback: function (v) { return v + ' jt'; } }, grid: { color: gridColor } }
+        }
+      }
+    });
+  }
+});
+</script>
+</body>
+</html>

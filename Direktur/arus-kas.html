@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Arus Kas — Adhiland Finance</title>
+<script>(function(){try{var t=localStorage.getItem('adh_theme');document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/app.css">
+</head>
+<body>
+<div id="app"></div>
+<script src="../assets/js/fmt.js"></script>
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/shell.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async function () {
+  const F = fmt;
+  await AdhData.load();
+  let page = 1;
+  const size = 50;
+  const report = await AdhData.loadReport('kas_mutasi');
+  const allRows = report.rows || [];
+
+  function render() {
+    const pg = AdhData.paginate(allRows, page, size);
+    const rows = pg.rows.map(r => `<tr>
+      <td>${r.perusahaan||'—'}</td>
+      <td>${r.tipe||'—'}</td>
+      <td>${r.tanggal||'—'}</td>
+      <td>${r.ref||'—'}</td>
+      <td>${r.uraian||'—'}</td>
+      <td class="num">${F.IDR(r.debit,'compact')}</td>
+      <td class="num">${F.IDR(r.kredit,'compact')}</td>
+      <td class="num">${F.IDR(r.saldo,'compact')}</td>
+    </tr>`).join('');
+    const content = `
+    <div class="global-bar">
+      <span class="filter-label">Mutasi kas</span>
+      <span class="text-muted" style="font-size:12px;margin-left:auto">Kas total ${F.IDR(AdhData.KAS.total,'compact')}</span>
+    </div>
+    <section class="kpi-grid" style="grid-template-columns:repeat(3,1fr)">
+      <article class="kpi-card"><div class="kpi-label">Total mutasi</div><div class="kpi-value">${(report.total||allRows.length).toLocaleString('id-ID')}</div></article>
+      <article class="kpi-card"><div class="kpi-label">Kas &amp; Bank</div><div class="kpi-value">${F.IDR(AdhData.KAS.total,'compact')}</div></article>
+      <article class="kpi-card"><div class="kpi-label">Halaman</div><div class="kpi-value">${pg.page} / ${pg.pages}</div></article>
+    </section>
+    <article class="card">
+      <div class="table-wrap"><table class="data-table">
+        <thead><tr><th>Proyek</th><th>Tipe</th><th>Tanggal</th><th>Ref</th><th>Uraian</th><th class="num">Debit</th><th class="num">Kredit</th><th class="num">Saldo</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table></div>
+      <div class="flex-between mt-3">
+        <p class="text-muted" style="font-size:12px">Sumber: kas_mutasi.csv</p>
+        <div class="flex gap-2">
+          <button class="btn btn-secondary btn-sm" id="prev-page" ${page<=1?'disabled':''}>← Prev</button>
+          <button class="btn btn-secondary btn-sm" id="next-page" ${page>=pg.pages?'disabled':''}>Next →</button>
+        </div>
+      </div>
+    </article>`;
+    AdhShell.mount({ role: 'Direktur', title: 'Arus Kas', content: content });
+    document.getElementById('prev-page')?.addEventListener('click', () => { page--; render(); });
+    document.getElementById('next-page')?.addEventListener('click', () => { page++; render(); });
+  }
+  render();
+});
+</script>
+</body>
+</html>

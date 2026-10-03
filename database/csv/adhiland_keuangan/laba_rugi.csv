@@ -1,0 +1,329 @@
+﻿Seksi,Kode,Nama Akun,Nilai,Level
+Laba Rugi Gabungan,,PENDAPATAN,,group
+Laba Rugi Gabungan,40,PENDAPATAN,354388,detail
+Laba Rugi Gabungan,40.101,PEMBANGUNAN RUKOST,0,detail
+Laba Rugi Gabungan,40.101.001,KAVLING,0,detail
+Laba Rugi Gabungan,40.101.002,KAVLING,0,detail
+Laba Rugi Gabungan,40.101.003,KAVLING,0,detail
+Laba Rugi Gabungan,40.101.004,KAVLING,0,detail
+Laba Rugi Gabungan,40.101.005,KAVLING,0,detail
+Laba Rugi Gabungan,40.101.006,KAVLING,0,detail
+Laba Rugi Gabungan,40.101.007,KAVLING,0,detail
+Laba Rugi Gabungan,40.101.008,KAVLING,0,detail
+Laba Rugi Gabungan,40.101.009,KAVLING,0,detail
+Laba Rugi Gabungan,40.101.010,KAVLING,0,detail
+Laba Rugi Gabungan,40.101.011,KAVLING,0,detail
+Laba Rugi Gabungan,40.101.012,KAVLING,0,detail
+Laba Rugi Gabungan,40.101.013,KAVLING,0,detail
+Laba Rugi Gabungan,40.101.014,KAVLING,0,detail
+Laba Rugi Gabungan,40.101.015,KAVLING,0,detail
+Laba Rugi Gabungan,40.101.016,KAVLING,0,detail
+Laba Rugi Gabungan,40.101.017,KAVLING,0,detail
+Laba Rugi Gabungan,40.101.018,KAVLING,0,detail
+Laba Rugi Gabungan,40.101.019,KAVLING,0,detail
+Laba Rugi Gabungan,40.101.020,KAVLING,0,detail
+Laba Rugi Gabungan,40.101.021,KAVLING,0,detail
+Laba Rugi Gabungan,40.101.101,KAVLING,0,detail
+Laba Rugi Gabungan,40.101.102,KAVLING,0,detail
+Laba Rugi Gabungan,40.101.103,KAVLING,0,detail
+Laba Rugi Gabungan,40.101.104,KAVLING,0,detail
+Laba Rugi Gabungan,40.101.105,KAVLING,0,detail
+Laba Rugi Gabungan,40.101.106,KAVLING,0,detail
+Laba Rugi Gabungan,40.101.107,KAVLING,0,detail
+Laba Rugi Gabungan,40.101.108,KAVLING,0,detail
+Laba Rugi Gabungan,40.101.109,KAVLING,0,detail
+Laba Rugi Gabungan,40.101.110,KAVLING,0,detail
+Laba Rugi Gabungan,40.101.111,KAVLING,0,detail
+Laba Rugi Gabungan,40.101.112,KAVLING,0,detail
+Laba Rugi Gabungan,40.101.113,KAVLING,0,detail
+Laba Rugi Gabungan,40.101.114,KAVLING,0,detail
+Laba Rugi Gabungan,40.101.115,KAVLING,0,detail
+Laba Rugi Gabungan,40.101.116,KAVLING,0,detail
+Laba Rugi Gabungan,40.101.117,KAVLING,0,detail
+Laba Rugi Gabungan,40.101.118,KAVLING,0,detail
+Laba Rugi Gabungan,40.101.119,KAVLING,0,detail
+Laba Rugi Gabungan,40.101.120,KAVLING,0,detail
+Laba Rugi Gabungan,40.101.121,KAVLING,0,detail
+Laba Rugi Gabungan,40.102,PENDAPATAN LAIN-LAIN,354388,detail
+Laba Rugi Gabungan,40.102.001,BUNGA BANK,354388,detail
+Laba Rugi Gabungan,40.102.002,PENDAPATAN INVESTASI,0,detail
+Laba Rugi Gabungan,40.102.003,KOMPENSASI PEMBATALAN PPJB,0,detail
+Laba Rugi Gabungan,40.102.004,PENDAPATAN PENJ ASET,0,detail
+Laba Rugi Gabungan,40.102.005,PENDAPATAN LAIN-LAIN,0,detail
+Laba Rugi Gabungan,40.102.101,BUNGA BANK,0,detail
+Laba Rugi Gabungan,40.102.102,PENDAPATAN INVESTASI,0,detail
+Laba Rugi Gabungan,40.102.103,KOMPENSASI PEMBATALAN PPJB,0,detail
+Laba Rugi Gabungan,40.102.104,PENDAPATAN PENJ ASET,0,detail
+Laba Rugi Gabungan,40.102.105,PENDAPATAN LAIN-LAIN,0,detail
+Laba Rugi Gabungan,,Total Pendapatan,354388,total
+Laba Rugi Gabungan,,HARGA POKOK PRODUKSI,,group
+Laba Rugi Gabungan,50,HARGA POKOK PRODUKSI,0,detail
+Laba Rugi Gabungan,50.101,HARGA POKOK PRODUKSI KAVLING,0,detail
+Laba Rugi Gabungan,50.101.001,MATERIAL KAV,0,detail
+Laba Rugi Gabungan,50.101.002,TENAGA KERJA KAV,0,detail
+Laba Rugi Gabungan,50.101.003,SUBKON KAV,0,detail
+Laba Rugi Gabungan,50.101.004,LISTRIK KAV,0,detail
+Laba Rugi Gabungan,50.101.005,TAMAN KAV,0,detail
+Laba Rugi Gabungan,50.101.999,LAIN-LAIN,0,detail
+Laba Rugi Gabungan,50.102,HARGA POKOK PRODUKSI KAVLING,0,detail
+Laba Rugi Gabungan,50.102.001,MATERIAL KAV,0,detail
+Laba Rugi Gabungan,50.102.002,TENAGA KERJA KAV,0,detail
+Laba Rugi Gabungan,50.102.003,SUBKON KAV,0,detail
+Laba Rugi Gabungan,50.102.004,LISTRIK KAV,0,detail
+Laba Rugi Gabungan,50.102.005,TAMAN KAV,0,detail
+Laba Rugi Gabungan,50.102.999,LAIN-LAIN,0,detail
+Laba Rugi Gabungan,50.103,HARGA POKOK PRODUKSI KAVLING,0,detail
+Laba Rugi Gabungan,50.103.001,MATERIAL KAV,0,detail
+Laba Rugi Gabungan,50.103.002,TENAGA KERJA KAV,0,detail
+Laba Rugi Gabungan,50.103.003,SUBKON KAV,0,detail
+Laba Rugi Gabungan,50.103.004,LISTRIK KAV,0,detail
+Laba Rugi Gabungan,50.103.005,TAMAN KAV,0,detail
+Laba Rugi Gabungan,50.103.999,LAIN-LAIN,0,detail
+Laba Rugi Gabungan,50.104,HARGA POKOK PRODUKSI KAVLING,0,detail
+Laba Rugi Gabungan,50.104.001,MATERIAL KAV,0,detail
+Laba Rugi Gabungan,50.104.002,TENAGA KERJA KAV,0,detail
+Laba Rugi Gabungan,50.104.003,SUBKON KAV,0,detail
+Laba Rugi Gabungan,50.104.004,LISTRIK KAV,0,detail
+Laba Rugi Gabungan,50.104.005,TAMAN KAV,0,detail
+Laba Rugi Gabungan,50.104.999,LAIN-LAIN,0,detail
+Laba Rugi Gabungan,50.105,HARGA POKOK PRODUKSI KAVLING,0,detail
+Laba Rugi Gabungan,50.105.001,MATERIAL KAV,0,detail
+Laba Rugi Gabungan,50.105.002,TENAGA KERJA KAV,0,detail
+Laba Rugi Gabungan,50.105.003,SUBKON KAV,0,detail
+Laba Rugi Gabungan,50.105.004,LISTRIK KAV,0,detail
+Laba Rugi Gabungan,50.105.005,TAMAN KAV,0,detail
+Laba Rugi Gabungan,50.105.999,LAIN-LAIN,0,detail
+Laba Rugi Gabungan,50.108.001,HPP LAIN,0,detail
+Laba Rugi Gabungan,50.108.002,HPP Barang dagangan,0,detail
+Laba Rugi Gabungan,50.10.5.001,HPP LAIN,0,detail
+Laba Rugi Gabungan,50.106,HARGA POKOK PRODUKSI KAVLING,0,detail
+Laba Rugi Gabungan,50.106.001,MATERIAL KAV,0,detail
+Laba Rugi Gabungan,50.106.002,TENAGA KERJA KAV,0,detail
+Laba Rugi Gabungan,50.106.003,SUBKON KAV,0,detail
+Laba Rugi Gabungan,50.106.004,LISTRIK KAV,0,detail
+Laba Rugi Gabungan,50.106.005,TAMAN KAV,0,detail
+Laba Rugi Gabungan,50.106.999,LAIN-LAIN,0,detail
+Laba Rugi Gabungan,50.107,HARGA POKOK PRODUKSI KAVLING,0,detail
+Laba Rugi Gabungan,50.107.001,MATERIAL KAV,0,detail
+Laba Rugi Gabungan,50.107.002,TENAGA KERJA KAV,0,detail
+Laba Rugi Gabungan,50.107.003,SUBKON KAV,0,detail
+Laba Rugi Gabungan,50.107.004,LISTRIK KAV,0,detail
+Laba Rugi Gabungan,50.107.005,TAMAN KAV,0,detail
+Laba Rugi Gabungan,50.107.999,LAIN-LAIN,0,detail
+Laba Rugi Gabungan,50.108,HARGA POKOK PRODUKSI PENDAPATAN LAIN,0,detail
+Laba Rugi Gabungan,50.108.001,HPP LAIN,0,detail
+Laba Rugi Gabungan,50.108.002,HPP xxxx,0,detail
+Laba Rugi Gabungan,50.109,HARGA POKOK PRODUKSI KAVLING,0,detail
+Laba Rugi Gabungan,50.109.001,MATERIAL KAV,0,detail
+Laba Rugi Gabungan,50.109.002,TENAGA KERJA KAV,0,detail
+Laba Rugi Gabungan,50.109.003,SUBKON KAV,0,detail
+Laba Rugi Gabungan,50.109.004,LISTRIK KAV,0,detail
+Laba Rugi Gabungan,50.109.005,TAMAN KAV,0,detail
+Laba Rugi Gabungan,50.109.999,LAIN-LAIN,0,detail
+Laba Rugi Gabungan,50.110,HARGA POKOK PRODUKSI KAVLING,0,detail
+Laba Rugi Gabungan,50.110.001,MATERIAL KAV,0,detail
+Laba Rugi Gabungan,50.110.002,TENAGA KERJA KAV,0,detail
+Laba Rugi Gabungan,50.110.003,SUBKON KAV,0,detail
+Laba Rugi Gabungan,50.110.004,LISTRIK KAV,0,detail
+Laba Rugi Gabungan,50.110.005,TAMAN KAV,0,detail
+Laba Rugi Gabungan,50.110.999,LAIN-LAIN,0,detail
+Laba Rugi Gabungan,50.111,HARGA POKOK PRODUKSI KAVLING,0,detail
+Laba Rugi Gabungan,50.111.001,MATERIAL KAV,0,detail
+Laba Rugi Gabungan,50.111.002,TENAGA KERJA KAV,0,detail
+Laba Rugi Gabungan,50.111.003,SUBKON KAV,0,detail
+Laba Rugi Gabungan,50.111.004,LISTRIK KAV,0,detail
+Laba Rugi Gabungan,50.111.005,TAMAN KAV,0,detail
+Laba Rugi Gabungan,50.111.999,LAIN-LAIN,0,detail
+Laba Rugi Gabungan,50.112,HARGA POKOK PRODUKSI KAVLING,0,detail
+Laba Rugi Gabungan,50.112.001,TANAH KAV B-04,0,detail
+Laba Rugi Gabungan,50.112.002,LEGALITAS KAV B-04,0,detail
+Laba Rugi Gabungan,50.112.003,PEMBANGUNAN KAV B-04,0,detail
+Laba Rugi Gabungan,50.112.999,LAIN-LAIN KAV B-04,0,detail
+Laba Rugi Gabungan,50.113,HARGA POKOK PRODUKSI KAVLING,0,detail
+Laba Rugi Gabungan,50.113.001,TANAH KAV B-05,0,detail
+Laba Rugi Gabungan,50.113.002,LEGALITAS KAV B-05,0,detail
+Laba Rugi Gabungan,50.113.003,PEMBANGUNAN KAV B-05,0,detail
+Laba Rugi Gabungan,50.113.999,LAIN-LAIN KAV B-05,0,detail
+Laba Rugi Gabungan,50.114,HARGA POKOK PRODUKSI KAVLING,0,detail
+Laba Rugi Gabungan,50.114.001,TANAH KAV B-06,0,detail
+Laba Rugi Gabungan,50.114.002,LEGALITAS KAV B-06,0,detail
+Laba Rugi Gabungan,50.114.003,PEMBANGUNAN KAV B-06,0,detail
+Laba Rugi Gabungan,50.114.999,LAIN-LAIN KAV B-06,0,detail
+Laba Rugi Gabungan,50.115,HARGA POKOK PRODUKSI KAVLING,0,detail
+Laba Rugi Gabungan,50.115.001,TANAH KAV B-07,0,detail
+Laba Rugi Gabungan,50.115.002,LEGALITAS KAV B-07,0,detail
+Laba Rugi Gabungan,50.115.003,PEMBANGUNAN KAV B-07,0,detail
+Laba Rugi Gabungan,50.115.999,LAIN-LAIN KAV B-07,0,detail
+Laba Rugi Gabungan,50.116,HARGA POKOK PRODUKSI KAVLING,0,detail
+Laba Rugi Gabungan,50.116.001,TANAH KAV B-08,0,detail
+Laba Rugi Gabungan,50.116.002,LEGALITAS KAV B-08,0,detail
+Laba Rugi Gabungan,50.116.003,PEMBANGUNAN KAV B-08,0,detail
+Laba Rugi Gabungan,50.116.999,LAIN-LAIN KAV B-08,0,detail
+Laba Rugi Gabungan,50.117,HARGA POKOK PRODUKSI KAVLING,0,detail
+Laba Rugi Gabungan,50.117.001,TANAH KAV B-09,0,detail
+Laba Rugi Gabungan,50.117.002,LEGALITAS KAV B-09,0,detail
+Laba Rugi Gabungan,50.117.003,PEMBANGUNAN KAV B-09,0,detail
+Laba Rugi Gabungan,50.117.999,LAIN-LAIN KAV B-09,0,detail
+Laba Rugi Gabungan,50.118,HARGA POKOK PRODUKSI KAVLING,0,detail
+Laba Rugi Gabungan,50.118.001,TANAH KAV B-10,0,detail
+Laba Rugi Gabungan,50.118.002,LEGALITAS KAV B-10,0,detail
+Laba Rugi Gabungan,50.118.003,PEMBANGUNAN KAV B-10,0,detail
+Laba Rugi Gabungan,50.118.999,LAIN-LAIN KAV B-10,0,detail
+Laba Rugi Gabungan,50.119,HARGA POKOK PRODUKSI KAVLING,0,detail
+Laba Rugi Gabungan,50.119.001,TANAH KAV B-11,0,detail
+Laba Rugi Gabungan,50.119.002,LEGALITAS KAV B-11,0,detail
+Laba Rugi Gabungan,50.119.003,PEMBANGUNAN KAV B-11,0,detail
+Laba Rugi Gabungan,50.119.999,LAIN-LAIN KAV B-11,0,detail
+Laba Rugi Gabungan,50.120,HARGA POKOK PRODUKSI KAVLING,0,detail
+Laba Rugi Gabungan,50.120.001,TANAH KAV B-12,0,detail
+Laba Rugi Gabungan,50.120.002,LEGALITAS KAV B-12,0,detail
+Laba Rugi Gabungan,50.120.003,PEMBANGUNAN KAV B-12,0,detail
+Laba Rugi Gabungan,50.120.999,LAIN-LAIN KAV B-12,0,detail
+Laba Rugi Gabungan,101,HARGA POKOK PRODUKSI KAVLING,0,detail
+Laba Rugi Gabungan,101.001,MATERIAL KAV,0,detail
+Laba Rugi Gabungan,101.002,TENAGA KERJA KAV,0,detail
+Laba Rugi Gabungan,101.003,SUBKON KAV,0,detail
+Laba Rugi Gabungan,101.004,LISTRIK KAV,0,detail
+Laba Rugi Gabungan,101.005,TAMAN KAV,0,detail
+Laba Rugi Gabungan,101.999,LAIN-LAIN KAV,0,detail
+Laba Rugi Gabungan,102,HARGA POKOK PRODUKSI KAVLING,0,detail
+Laba Rugi Gabungan,102.001,MATERIAL KAV,0,detail
+Laba Rugi Gabungan,102.002,TENAGA KERJA KAV,0,detail
+Laba Rugi Gabungan,102.003,SUBKON KAV,0,detail
+Laba Rugi Gabungan,102.004,LISTRIK KAV,0,detail
+Laba Rugi Gabungan,102.005,TAMAN KAV,0,detail
+Laba Rugi Gabungan,102.999,LAIN-LAIN KAV,0,detail
+Laba Rugi Gabungan,103,HARGA POKOK PRODUKSI KAVLING,0,detail
+Laba Rugi Gabungan,103.001,MATERIAL KAV,0,detail
+Laba Rugi Gabungan,103.002,TENAGA KERJA KAV,0,detail
+Laba Rugi Gabungan,103.003,SUBKON KAV,0,detail
+Laba Rugi Gabungan,103.004,LISTRIK KAV,0,detail
+Laba Rugi Gabungan,103.005,TAMAN KAV,0,detail
+Laba Rugi Gabungan,103.999,LAIN-LAIN KAV,0,detail
+Laba Rugi Gabungan,104,HARGA POKOK PRODUKSI KAVLING,0,detail
+Laba Rugi Gabungan,104.001,MATERIAL KAV,0,detail
+Laba Rugi Gabungan,104.002,TENAGA KERJA KAV,0,detail
+Laba Rugi Gabungan,104.003,SUBKON KAV,0,detail
+Laba Rugi Gabungan,104.004,LISTRIK KAV,0,detail
+Laba Rugi Gabungan,104.005,TAMAN KAV,0,detail
+Laba Rugi Gabungan,104.999,LAIN-LAIN KAV,0,detail
+Laba Rugi Gabungan,105,HARGA POKOK PRODUKSI KAVLING,0,detail
+Laba Rugi Gabungan,105.001,MATERIAL KAV,0,detail
+Laba Rugi Gabungan,105.002,TENAGA KERJA KAV,0,detail
+Laba Rugi Gabungan,105.003,SUBKON KAV,0,detail
+Laba Rugi Gabungan,105.004,LISTRIK KAV,0,detail
+Laba Rugi Gabungan,105.005,TAMAN KAV,0,detail
+Laba Rugi Gabungan,105.999,LAIN-LAIN KAV,0,detail
+Laba Rugi Gabungan,106,HARGA POKOK PRODUKSI KAVLING,0,detail
+Laba Rugi Gabungan,106.001,MATERIAL KAV,0,detail
+Laba Rugi Gabungan,106.002,TENAGA KERJA KAV,0,detail
+Laba Rugi Gabungan,106.003,SUBKON KAV,0,detail
+Laba Rugi Gabungan,106.004,LISTRIK KAV,0,detail
+Laba Rugi Gabungan,106.005,TAMAN KAV,0,detail
+Laba Rugi Gabungan,106.999,LAIN-LAIN KAV,0,detail
+Laba Rugi Gabungan,107,HARGA POKOK PRODUKSI KAVLING,0,detail
+Laba Rugi Gabungan,107.001,MATERIAL KAV,0,detail
+Laba Rugi Gabungan,107.002,TENAGA KERJA KAV,0,detail
+Laba Rugi Gabungan,107.003,SUBKON KAV,0,detail
+Laba Rugi Gabungan,107.004,LISTRIK KAV,0,detail
+Laba Rugi Gabungan,107.005,TAMAN KAV,0,detail
+Laba Rugi Gabungan,107.999,LAIN-LAIN KAV,0,detail
+Laba Rugi Gabungan,,Total HPP,0,total
+Laba Rugi Gabungan,,Laba Kotor,354388,total
+Laba Rugi Gabungan,,BEBAN,,group
+Laba Rugi Gabungan,60,BEBAN,4117413471,detail
+Laba Rugi Gabungan,60.101,BEBAN MARKETING,2104677840,detail
+Laba Rugi Gabungan,60.101.001,BLT,53000000,detail
+Laba Rugi Gabungan,60.101.002,INSENTIF/KOMISI,528074300,detail
+Laba Rugi Gabungan,60.101.003,BEBAN TRANSPORTASI,0,detail
+Laba Rugi Gabungan,60.101.004,BEBAN ADVERTISING,557004540,detail
+Laba Rugi Gabungan,60.101.005,BEBAN DIGITAL ADS,155450000,detail
+Laba Rugi Gabungan,60.101.006,BEBAN PROMOSI,786029000,detail
+Laba Rugi Gabungan,60.101.007,EXPO,0,detail
+Laba Rugi Gabungan,60.101.999,BEBAN PROMOSI LAIN-LAIN,25120000,detail
+Laba Rugi Gabungan,60.102,BEBAN UMUM & ADMINISTRASI,1292946987,detail
+Laba Rugi Gabungan,60.102.001,GAJI KARYAWAN TETAP,1159479321,detail
+Laba Rugi Gabungan,60.102.002,UANG MAKAN/KONSUMSI,0,detail
+Laba Rugi Gabungan,60.102.003,TUNJANGAN KOMUNIKASI,0,detail
+Laba Rugi Gabungan,60.102.004,TRANSPORTASI,0,detail
+Laba Rugi Gabungan,60.102.005,BPJS,0,detail
+Laba Rugi Gabungan,60.102.006,THR,112867666,detail
+Laba Rugi Gabungan,60.102.007,BONUS,0,detail
+Laba Rugi Gabungan,60.102.008,INSENTIF,0,detail
+Laba Rugi Gabungan,60.102.009,TUNJANGAN PPh 21,16000000,detail
+Laba Rugi Gabungan,60.102.010,BIAYA LEGALITAS,4500000,detail
+Laba Rugi Gabungan,60.102.999,LAIN-LAIN,100000,detail
+Laba Rugi Gabungan,60.103,NON PERSONIL,13250000,detail
+Laba Rugi Gabungan,60.103.001,HONOR,13250000,detail
+Laba Rugi Gabungan,60.103.002,TRANSPORTASI,0,detail
+Laba Rugi Gabungan,60.103.003,THR,0,detail
+Laba Rugi Gabungan,60.103.004,BONUS,0,detail
+Laba Rugi Gabungan,60.103.999,LAIN-LAIN,0,detail
+Laba Rugi Gabungan,60.103.005,TAGIHAN HALO CALL CENTER,0,detail
+Laba Rugi Gabungan,60.103.006,TAGIHAN WIFI,0,detail
+Laba Rugi Gabungan,60.103.007,BENSIN OPERASIONAL,0,detail
+Laba Rugi Gabungan,60.103.008,MATERAI,0,detail
+Laba Rugi Gabungan,60.103.009,PERANGKO/KIRIMAN SRT & DOK,0,detail
+Laba Rugi Gabungan,60.103.010,ADMINISTRASI BANK,0,detail
+Laba Rugi Gabungan,60.103.011,PERJALANAN DINAS,0,detail
+Laba Rugi Gabungan,60.103.012,KEAMANAN DAN KEBERSIHAN,0,detail
+Laba Rugi Gabungan,60.103.013,MEETING,0,detail
+Laba Rugi Gabungan,60.103.014,PROFESSIONAL FEE,0,detail
+Laba Rugi Gabungan,60.103.015,REKRUITMEN & TRAINING KARYAWAN,0,detail
+Laba Rugi Gabungan,60.103.016,EVENT KANTOR,0,detail
+Laba Rugi Gabungan,60.103.017,RENOVASI KANTOR,0,detail
+Laba Rugi Gabungan,60.103.018,MEDICAL CLAIM,0,detail
+Laba Rugi Gabungan,60.103.019,BEBAN PERLENGKAPAN,0,detail
+Laba Rugi Gabungan,60.103.020,MAINTENANCE KENDARAAN/ELEKTRONIK,0,detail
+Laba Rugi Gabungan,60.103.021,BEBAN KOMPENSASI,0,detail
+Laba Rugi Gabungan,60.103.022,BEBAN BAGI HASIL,0,detail
+Laba Rugi Gabungan,60.103.023,BIAYA ADMINISTRASI WANMERKING,0,detail
+Laba Rugi Gabungan,60.103.024,BEBAN PAJAK KENDARAAN,0,detail
+Laba Rugi Gabungan,60.103.025,BEBAN PAJAK LAINNYA/PAJAK BUNGA,0,detail
+Laba Rugi Gabungan,60.103.026,BIAYA AJB DLL,0,detail
+Laba Rugi Gabungan,60.103.027,PAJAK PPH 4 (2),0,detail
+Laba Rugi Gabungan,60.103.028,BPHTB,0,detail
+Laba Rugi Gabungan,60.104,NON PERSONIL,706538644,detail
+Laba Rugi Gabungan,60.104.001,OPERASIONAL KANTOR,371397189,detail
+Laba Rugi Gabungan,60.104.002,SUMBANGAN/REWARD,8449000,detail
+Laba Rugi Gabungan,60.104.003,TOKEN PLN (ID 513111445351 A/N NANDAR SUKENDAR),33388722,detail
+Laba Rugi Gabungan,60.104.004,TAGIHAN PDAM (NO. SAL 198333),1109000,detail
+Laba Rugi Gabungan,60.104.005,TAGIHAN HALO CALL CENTER (08113500591),2160903,detail
+Laba Rugi Gabungan,60.104.006,TAGIHAN WIFI (INDIHOME 152703261313),7631250,detail
+Laba Rugi Gabungan,60.104.007,BENSIN OPERASIONAL,14020000,detail
+Laba Rugi Gabungan,60.104.008,MATERAI,1546500,detail
+Laba Rugi Gabungan,60.104.009,PERANGKO/KIRIMAN SRT & DOK,425500,detail
+Laba Rugi Gabungan,60.104.010,ADMINISTRASI BANK,856700,detail
+Laba Rugi Gabungan,60.104.011,PERJALANAN DINAS,6146215,detail
+Laba Rugi Gabungan,60.104.012,KEAMANAN DAN KEBERSIHAN,5057000,detail
+Laba Rugi Gabungan,60.104.013,MEETING,22809124,detail
+Laba Rugi Gabungan,60.104.014,PROFESSIONAL FEE,0,detail
+Laba Rugi Gabungan,60.104.015,REKRUITMEN KARYAWAN,0,detail
+Laba Rugi Gabungan,60.104.016,TRAINING KARYAWAN,30800000,detail
+Laba Rugi Gabungan,60.104.017,ZAKAT,0,detail
+Laba Rugi Gabungan,60.104.018,EVENT KANTOR,131526403,detail
+Laba Rugi Gabungan,60.104.019,RENOVASI KANTOR,35105000,detail
+Laba Rugi Gabungan,60.104.020,FASILITAS DAN FURNITURE,0,detail
+Laba Rugi Gabungan,60.104.021,MAINTENANCE KENDARAAN,3555000,detail
+Laba Rugi Gabungan,60.104.022,MAINTENANCE ELEKTRONIK/MESIN,0,detail
+Laba Rugi Gabungan,60.104.023,BIAYA ADMINISTRASI WANMERKING,5300000,detail
+Laba Rugi Gabungan,60.104.024,MEDICAL CLAIM,0,detail
+Laba Rugi Gabungan,60.104.025,BEBAN BAGI HASIL,0,detail
+Laba Rugi Gabungan,60.104.026,BIAYA AJB DLL,0,detail
+Laba Rugi Gabungan,60.104.027,BEBAN PERLENGKAPAN,0,detail
+Laba Rugi Gabungan,60.104.028,BEBAN PAJAK KENDARAAN,0,detail
+Laba Rugi Gabungan,60.104.029,BEBAN PAJAK LAINNYA/PAJAK BUNGA,70878,detail
+Laba Rugi Gabungan,60.104.030,PAJAK PPH 4 (2),0,detail
+Laba Rugi Gabungan,60.104.031,BPHTB,0,detail
+Laba Rugi Gabungan,60.104.032,BIAYA BALIK NAMA,0,detail
+Laba Rugi Gabungan,60.104.033,BIAYA NOTARIS (PENGURUSAN PAJAK),0,detail
+Laba Rugi Gabungan,60.104.034,PENYUSUAN PERALATAN,0,detail
+Laba Rugi Gabungan,60.104.035,PENYUSUTAN KENDARAAN,1000000,detail
+Laba Rugi Gabungan,60.104.036,PENYUSUTAN BANGUNAN,0,detail
+Laba Rugi Gabungan,60.104.037,BEBAN KOMPENSASI,0,detail
+Laba Rugi Gabungan,60.104.038,KONSULTAN PAJAK,0,detail
+Laba Rugi Gabungan,60.104.039,PPN,0,detail
+Laba Rugi Gabungan,60.104.999,LAIN-LAIN,24184260,detail
+Laba Rugi Gabungan,60.104.040,BIAYA NOTARIS (PENGURUSAN PAJAK),0,detail
+Laba Rugi Gabungan,,Total Beban,4117413471,total
+Laba Rugi Gabungan,,Laba/Rugi Bersih,-4117059083,total

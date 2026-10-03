@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inventaris — Adhiland Finance</title>
+<script>(function(){try{var t=localStorage.getItem('adh_theme');document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/app.css">
+</head>
+<body>
+<div id="app"></div>
+<script src="../assets/js/fmt.js"></script>
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/shell.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async function () {
+  if (window.AdhData && AdhData.load) await AdhData.load();
+  var F = fmt, D = AdhData;
+  var items = [
+    {proy:'Lumiera', tgl:'12 Jan 2025', no:'INV-001', uraian:'Laptop Dell Latitude', spek:'i5/16GB', qty:5, sat:'unit', nominal:45000000, lok:'Kantor', kond:'Baik', pic:'Admin'},
+    {proy:'Lumiera', tgl:'03 Mar 2025', no:'INV-002', uraian:'Printer Epson', spek:'L3150', qty:2, sat:'unit', nominal:4500000, lok:'Kantor', kond:'Baik', pic:'Admin'},
+    {proy:'Joyo', tgl:'20 Jun 2025', no:'INV-003', uraian:'Mesin beton', spek:'Molent 50L', qty:3, sat:'unit', nominal:18000000, lok:'Site', kond:'Rusak', pic:'Mandor (dummy)'},
+    {proy:'Sigura', tgl:'15 Agu 2025', no:'INV-004', uraian:'Scaffolding', spek:'Set 12m', qty:10, sat:'set', nominal:25000000, lok:'Site', kond:'Baik', pic:'Teknik'},
+    {proy:'Mayana II', tgl:'01 Feb 2026', no:'INV-005', uraian:'Genset 5kVA', spek:'Honda', qty:1, sat:'unit', nominal:12000000, lok:'Site', kond:'Baik', pic:'\u2013'},
+    {proy:'Resort', tgl:'10 Mei 2026', no:'INV-006', uraian:'Kamera CCTV', spek:'4CH kit', qty:2, sat:'set', nominal:8000000, lok:'Site', kond:'Baik', pic:'Security (dummy)'}
+  ];
+  var totalNilai = items.reduce(function(s,i){return s+i.nominal;},0);
+  var rows = items.map(function(i){
+    return '<tr><td>'+i.proy+'</td><td>'+i.tgl+'</td><td>'+i.no+'</td><td>'+i.uraian+'</td><td>'+i.spek+'</td><td class="num">'+i.qty+'</td><td>'+i.sat+'</td><td class="num">'+F.IDR(i.nominal,'compact')+'</td><td>'+i.lok+'</td><td><span class="status-badge '+(i.kond==='Baik'?'rag-good':'rag-bad')+'">'+i.kond+'</span></td><td>'+i.pic+'</td></tr>';
+  }).join('');
+  var html = '';
+  html += '<div class="global-bar"><span class="filter-label">Inventaris</span>';
+  html += '<div style="margin-left:auto" class="filter-group"><span class="text-muted" style="font-size:12px">Data seed dummy · CRUD defer</span></div></div>';
+  html += '<section class="kpi-grid">';
+  html += '<article class="kpi-card"><div class="kpi-label">Total Nilai Aset</div><div class="kpi-value">'+F.IDR(totalNilai,'compact')+' (dummy)</div></article>';
+  html += '<article class="kpi-card"><div class="kpi-label">Jumlah item</div><div class="kpi-value">'+items.length+'</div></article>';
+  html += '<article class="kpi-card"><div class="kpi-label">Kondisi Rusak</div><div class="kpi-value">1</div></article>';
+  html += '<article class="kpi-card"><div class="kpi-label">Tanpa PIC</div><div class="kpi-value">1</div></article>';
+  html += '</section>';
+  html += '<article class="card"><div class="card-header"><h3 class="card-title">Daftar inventaris (dummy seed \u2014 mockup lama kosong)</h3></div>';
+  html += '<div class="table-wrap"><table class="data-table"><thead><tr><th>Proyek</th><th>Tgl Beli</th><th>No</th><th>Uraian</th><th>Spek</th><th class="num">Qty</th><th>Sat</th><th class="num">Nominal</th><th>Lokasi</th><th>Kondisi</th><th>PIC</th></tr></thead>';
+  html += '<tbody>'+rows+'</tbody></table></div></article>';
+  AdhShell.mount({ role: 'Direktur', title: 'Inventaris', content: html });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,149 @@
+/* Adhiland Finance Design Tokens — ONLY place allowed to contain #hex values */
+:root,
+:root[data-theme="light"] {
+  color-scheme: light;
+  /* Surfaces */
+  --bg: #F4F6FA;
+  --surface: #FFFFFF;
+  --surface-2: #EEF1F7;
+  --surface-3: #E4E9F2;
+  --border: #DDE3EE;
+  --border-strong: #C5CEDD;
+  --overlay: rgba(15, 29, 61, .45);
+  /* Text */
+  --text: #111B30;
+  --text-muted: #556277;
+  --text-subtle: #6B778C;
+  --text-on-primary: #FFFFFF;
+  /* Brand */
+  --primary: #3F58A4;
+  --primary-hover: #324789;
+  --primary-soft: #E8ECF8;
+  --focus-ring: #1D5FC1;
+  /* Navigation */
+  --nav-bg: #0F1D3D;
+  --nav-text: #C9D3EA;
+  --nav-text-active: #FFFFFF;
+  --nav-active-bg: rgba(255,255,255,.12);
+  --nav-border: rgba(255,255,255,.10);
+  /* Semantic */
+  --success: #0B7A53;
+  --success-soft: #E3F5EC;
+  --warning: #9A4A06;
+  --warning-soft: #FCEFD9;
+  --danger: #C62828;
+  --danger-soft: #FBE5E5;
+  --info: #1D5FC1;
+  --info-soft: #E3EEFC;
+  --neutral: #556277;
+  --neutral-soft: #EEF1F7;
+  /* Project series (fixed order) */
+  --proj-joyo: #3F58A4;
+  --proj-sigura: #0A7F8A;
+  --proj-lumiera: #C97A10;
+  --proj-mayana2: #7040B5;
+  --proj-resort: #C23A60;
+  /* Viz meaning */
+  --viz-sales: #3F58A4;
+  --viz-cash: #0A7F8A;
+  --viz-plan: #AEB8CC;
+  --viz-actual: #3F58A4;
+  --viz-over: #C62828;
+  --viz-grid: #E4E9F2;
+  --viz-axis: #556277;
+  /* Heatmap legal */
+  --hm-done: #0B7A53;
+  --hm-progress: #C97A10;
+  --hm-overdue: #C62828;
+  --hm-todo: #DDE3EE;
+  /* Shape */
+  --radius-sm: 5px;
+  --radius: 6px;
+  --radius-lg: 8px;
+  --shadow-1: 0 1px 2px rgba(15,29,61,.05);
+  --shadow-2: 0 4px 12px rgba(15,29,61,.10);
+  --shadow-3: 0 12px 32px rgba(15,29,61,.18);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0B1220;
+  --surface: #121B2E;
+  --surface-2: #18233A;
+  --surface-3: #202D48;
+  --border: #25324D;
+  --border-strong: #34446A;
+  --overlay: rgba(0, 0, 0, .6);
+  --text: #E6EBF5;
+  --text-muted: #9AA8C2;
+  --text-subtle: #8392AE;
+  --text-on-primary: #0B1220;
+  --primary: #8FA6EA;
+  --primary-hover: #A9BAF0;
+  --primary-soft: #1C2748;
+  --focus-ring: #6AAEF7;
+  --nav-bg: #0A1020;
+  --nav-text: #9AA8C2;
+  --nav-text-active: #FFFFFF;
+  --nav-active-bg: rgba(143,166,234,.16);
+  --nav-border: rgba(255,255,255,.08);
+  --success: #3DCB93;
+  --success-soft: #11302A;
+  --warning: #F2B04F;
+  --warning-soft: #3A2A10;
+  --danger: #F47C77;
+  --danger-soft: #3B1A1C;
+  --info: #6AAEF7;
+  --info-soft: #14294A;
+  --neutral: #9AA8C2;
+  --neutral-soft: #18233A;
+  --proj-joyo: #8FA6EA;
+  --proj-sigura: #3CC4CF;
+  --proj-lumiera: #F2B04F;
+  --proj-mayana2: #B393E8;
+  --proj-resort: #F07C9E;
+  --viz-sales: #8FA6EA;
+  --viz-cash: #3CC4CF;
+  --viz-plan: #4A5A7E;
+  --viz-actual: #8FA6EA;
+  --viz-over: #F47C77;
+  --viz-grid: #25324D;
+  --viz-axis: #9AA8C2;
+  --hm-done: #3DCB93;
+  --hm-progress: #F2B04F;
+  --hm-overdue: #F47C77;
+  --hm-todo: #25324D;
+  --shadow-1: 0 1px 2px rgba(0,0,0,.4);
+  --shadow-2: 0 4px 12px rgba(0,0,0,.45);
+  --shadow-3: 0 12px 32px rgba(0,0,0,.55);
+}
+
+/* Scale (shared) */
+:root {
+  --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --fs-12: 12px;
+  --fs-13: 13px;
+  --fs-14: 14px;
+  --fs-16: 16px;
+  --fs-20: 20px;
+  --fs-24: 24px;
+  --fs-32: 32px;
+  --lh-tight: 1.25;
+  --lh-base: 1.5;
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 32px;
+  --sp-7: 48px;
+  --sidebar-w: 248px;
+  --sidebar-w-collapsed: 0px;
+  --topbar-h: 56px;
+  --row-h-compact: 36px;
+  --row-h: 44px;
+  --ease: cubic-bezier(.2,.0,.0,1);
+  --dur-1: 120ms;
+  --dur-2: 200ms;
+}

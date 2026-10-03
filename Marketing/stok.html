@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stok & Penjualan — Adhiland Finance</title>
+<script>(function(){try{var t=localStorage.getItem('adh_theme');document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/app.css">
+</head>
+<body>
+<div id="app"></div>
+<script src="../assets/js/fmt.js"></script>
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/shell.js"></script>
+<script src="../assets/js/kavling.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async function () {
+  const F = fmt;
+  await AdhData.load();
+  const D = AdhData, K = AdhKavling;
+  const list = D.KAVLING || [];
+  const byProj = {};
+  list.forEach(k => {
+    const p = k.proyek || '?';
+    if (!byProj[p]) byProj[p] = { belum:0, deal:0, bertahap:0, cash:0 };
+    byProj[p][k.status === 'deal' ? 'deal' : k.status] = (byProj[p][k.status === 'deal' ? 'deal' : k.status] || 0) + 1;
+  });
+  const funnel = D.STOK.funnel;
+  const rows = Object.keys(byProj).map(p => {
+    const b = byProj[p];
+    return `<tr><td>${p}</td><td class="num">${b.belum||0}</td><td class="num">${b.deal||0}</td><td class="num">${b.bertahap||0}</td><td class="num">${b.cash||0}</td></tr>`;
+  }).join('');
+  const content = `
+  <div class="global-bar"><span class="filter-label">Stok & Penjualan</span>
+    <span class="text-muted" style="font-size:12px;margin-left:auto">Data per ${F.dateTime(D.AS_OF)}</span></div>
+  <section class="kpi-grid">
+    <article class="kpi-card"><div class="kpi-label">Stok belum terjual</div><div class="kpi-value">${funnel.belum}</div>
+      <div class="kpi-sub">Potensi ${F.IDR(D.STOK.potensi,'compact')}</div></article>
+    <article class="kpi-card"><div class="kpi-label">Deal—belum bayar</div><div class="kpi-value">${funnel.dealBelumBayar}</div></article>
+    <article class="kpi-card"><div class="kpi-label">Bertahap</div><div class="kpi-value">${funnel.bertahap}</div></article>
+    <article class="kpi-card"><div class="kpi-label">Cash</div><div class="kpi-value">${funnel.cash}</div></article>
+  </section>
+  <article class="card">
+    <div class="card-header"><h3 class="card-title">Stok per proyek</h3></div>
+    <div class="table-wrap"><table class="data-table">
+      <thead><tr><th>Proyek</th><th class="num">Belum</th><th class="num">Deal</th><th class="num">Bertahap</th><th class="num">Cash</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>
+    <p class="text-muted mt-2" style="font-size:12px">Sumber: kavling_master · funnel konsisten dengan dashboard</p>
+  </article>`;
+  AdhShell.mount({ role: 'Marketing', title: 'Stok & Penjualan', content });
+});
+</script>
+</body>
+</html>

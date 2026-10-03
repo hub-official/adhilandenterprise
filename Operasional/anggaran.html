@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Anggaran Operasional — Adhiland Finance</title>
+<script>(function(){try{var t=localStorage.getItem('adh_theme');document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/app.css">
+</head>
+<body>
+<div id="app"></div>
+<script src="../assets/js/fmt.js"></script>
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/shell.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async function () {
+  const F = fmt;
+  await AdhData.load();
+  const items = await AdhData.loadReport('budgeting_item');
+  const rows = Array.isArray(items) ? items : (items.rows || []);
+  const ops = rows.filter(function (r) {
+    const j = (r.jenis || r.Jenis || '').toLowerCase();
+    const role = (r.sumberRole || '').toLowerCase();
+    return role === 'operasional' || j.indexOf('ops') >= 0 || j.indexOf('operasional') >= 0 || j.indexOf('gaji') >= 0 || j.indexOf('utilitas') >= 0 || j.indexOf('sewa') >= 0;
+  });
+  const list = ops.length ? ops : rows.slice(0, 30);
+  const anggaran = list.reduce(function (s, r) { return s + (r.rencana || 0); }, 0);
+  const realisasi = list.reduce(function (s, r) { return s + (r.terbayar || 0); }, 0);
+  const table = list.map(function (r) {
+    return '<tr><td>'+(r.cluster||'—')+'</td><td>'+(r.deskripsi||'—')+'</td><td>'+(r.jenis||'—')+'</td>' +
+      '<td class="num">'+F.IDR(r.rencana||0,'compact')+'</td>' +
+      '<td class="num">'+F.IDR(r.terbayar||0,'compact')+'</td>' +
+      '<td class="num">'+F.IDR(r.sisa||0,'compact')+'</td>' +
+      '<td>'+(r.jatuhTempo||'—')+'</td><td>'+(r.status||'—')+'</td></tr>';
+  }).join('');
+  const content = `
+  <div class="global-bar"><span class="filter-label">Anggaran Operasional</span>
+    <span class="text-muted" style="font-size:12px;margin-left:auto">${list.length} item</span></div>
+  <section class="kpi-grid">
+    <article class="kpi-card"><div class="kpi-label">Anggaran</div><div class="kpi-value">${F.IDR(anggaran,'compact')}</div></article>
+    <article class="kpi-card"><div class="kpi-label">Realisasi</div><div class="kpi-value">${F.IDR(realisasi,'compact')}</div></article>
+    <article class="kpi-card"><div class="kpi-label">Serapan</div><div class="kpi-value">${anggaran?((realisasi/anggaran)*100).toFixed(1).replace('.',','):0}%</div></article>
+    <article class="kpi-card"><div class="kpi-label">Pengajuan menunggu</div><div class="kpi-value">${AdhData.filterPengajuan({role:'Operasional',status:'menunggu'}).length}</div></article>
+  </section>
+  <article class="card">
+    <div class="table-wrap"><table class="data-table">
+      <thead><tr><th>Cluster</th><th>Deskripsi</th><th>Jenis</th><th class="num">Rencana</th><th class="num">Terbayar</th><th class="num">Sisa</th><th>Jatuh tempo</th><th>Status</th></tr></thead>
+      <tbody>${table||'<tr><td colspan="8" class="text-muted">Tidak ada data</td></tr>'}</tbody>
+    </table></div>
+    <p class="text-muted mt-2" style="font-size:12px">Sumber: budgeting_item.json</p>
+  </article>`;
+  AdhShell.mount({ role: 'Operasional', title: 'Anggaran Operasional', content });
+});
+</script>
+</body>
+</html>

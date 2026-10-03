@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Detail Kavling — Adhiland Finance</title>
+<script>
+(function(){try{var t=localStorage.getItem('adh_theme');
+document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}
+catch(e){document.documentElement.setAttribute('data-theme','light');}})();
+</script>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/app.css">
+</head>
+<body>
+<div id="app"></div>
+<script src="../assets/js/fmt.js"></script>
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/shell.js"></script>
+<script src="../assets/js/kavling.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async function () {
+  const F = fmt;
+  const params = new URLSearchParams(location.search);
+  const id = Number(params.get('id') || 1);
+  await AdhData.load();
+  const k = AdhData.getKavling(id);
+  const K = AdhKavling;
+
+  if (!k) {
+    AdhShell.mount({ role: 'Teknik', title: 'Kavling tidak ditemukan', content:
+      `<div class="card"><p>Kavling ID ${id} tidak ada. <a href="../Direktur/kavling.html">← Kembali</a></p></div>` });
+    return;
+  }
+
+  const [spekAll, furniture, progres] = await Promise.all([
+    AdhData.loadReport('kavling_spek').catch(() => ({})),
+    AdhData.loadReport('furniture').catch(() => []),
+    AdhData.loadReport('progres').catch(() => [])
+  ]);
+  // kavling_spek is object keyed by id
+  let spek = null;
+  if (spekAll && typeof spekAll === 'object' && !Array.isArray(spekAll)) {
+    spek = spekAll[String(id)] || spekAll[id] || null;
+  }
+  const furnItems = (Array.isArray(furniture) ? furniture : []).filter(function (f) {
+    return Number(f['Detail ID'] || f.detailId) === id;
+  });
+  const progItems = (Array.isArray(progres) ? progres : []).filter(function (p) {
+    return Number(p['Detail ID'] || p.detailId) === id;
+  });
+
+  function panel(id, html, show) {
+    return `<div id="panel-${id}" class="tab-panel" style="display:${show?'block':'none'}">${html}</div>`;
+  }
+
+  const content = `
+  <div class="global-bar">
+    <a class="btn btn-ghost btn-sm" href="../Direktur/kavling.html">← Kembali</a>
+    <span class="filter-label" style="margin-left:8px">${k.kavling || k.code} · ${k.proyek}</span>
+    ${K.statusBadge(k.status)}
+    <div class="filter-group" style="margin-left:auto"><button class="btn btn-secondary btn-sm">Export</button></div>
+  </div>
+  <section class="kpi-grid">
+    <article class="kpi-card"><div class="kpi-label">Harga Deal / PPJB</div><div class="kpi-value">${F.IDR(k.hargaDeal||k.hargaDaftar,'compact')}</div></article>
+    <article class="kpi-card"><div class="kpi-label">Terbayar</div><div class="kpi-value">${F.IDR(k.terbayar,'compact')}</div><div class="kpi-sub">${(k.pctBayar||0).toFixed(1)}%</div></article>
+    <article class="kpi-card"><div class="kpi-label">Sisa Tagihan</div><div class="kpi-value">${F.IDR(k.sisa,'compact')}</div></article>
+    <article class="kpi-card"><div class="kpi-label">Progres Konstruksi</div><div class="kpi-value">${(k.progresBangun||0).toFixed(0)}%</div></article>
+  </section>
+  <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap" id="tabs">
+    <button type="button" class="btn btn-secondary btn-sm tab-btn active" data-tab="ringkasan">Ringkasan</button>
+    <button type="button" class="btn btn-ghost btn-sm tab-btn" data-tab="bayar">Pembayaran</button>
+    <button type="button" class="btn btn-ghost btn-sm tab-btn" data-tab="konstruksi">Konstruksi</button>
+    <button type="button" class="btn btn-ghost btn-sm tab-btn" data-tab="furnitur">Furnitur</button>
+    <button type="button" class="btn btn-ghost btn-sm tab-btn" data-tab="legal">Legal</button>
+    <button type="button" class="btn btn-ghost btn-sm tab-btn" data-tab="riwayat">Riwayat</button>
+  </div>
+  ${panel('ringkasan', `
+    <article class="card">
+      <div class="card-header"><h3 class="card-title">Identitas</h3></div>
+      <div class="table-wrap"><table class="data-table"><tbody>
+        <tr><td class="text-muted">Pembeli</td><td>${k.pembeli||'—'}</td><td class="text-muted">NIK</td><td>${k.nik||'—'}</td></tr>
+        <tr><td class="text-muted">Telepon</td><td>${k.telepon||'—'}</td><td class="text-muted">Marketing / SPV</td><td>${k.marketing||'—'} / ${k.spv||'—'}</td></tr>
+        <tr><td class="text-muted">No. PPJB</td><td colspan="3">${k.noPpjb||'—'}</td></tr>
+        <tr><td class="text-muted">Alamat</td><td colspan="3">${[k.alamat,k.kelurahan,k.kecamatan,k.kota].filter(Boolean).join(', ')||'—'}</td></tr>
+        <tr><td class="text-muted">LB / LT</td><td>${k.lb||'—'} / ${k.lt||'—'} m²</td><td class="text-muted">Status pembeli</td><td>${k.statusPembeli||'—'}</td></tr>
+      </tbody></table></div>
+    </article>`, true)}
+  ${panel('bayar', `
+    <article class="card">
+      <div class="card-header"><h3 class="card-title">Pembayaran PPJB</h3></div>
+      <div class="table-wrap"><table class="data-table"><tbody>
+        <tr><td class="text-muted">Harga Deal</td><td class="num">${F.IDR(k.hargaDeal)}</td></tr>
+        <tr><td class="text-muted">Harga Daftar</td><td class="num">${F.IDR(k.hargaDaftar)}</td></tr>
+        <tr><td class="text-muted">Terbayar</td><td class="num">${F.IDR(k.terbayar)}</td></tr>
+        <tr><td class="text-muted">Sisa</td><td class="num">${F.IDR(k.sisa)}</td></tr>
+        <tr><td class="text-muted">% Terbayar</td><td>${(k.pctBayar||0).toFixed(2)}%</td></tr>
+        <tr><td class="text-muted">Tgl PPJB</td><td>${k.tglPpjb||'—'}</td></tr>
+        <tr><td class="text-muted">Pelunasan sesuai PPJB</td><td>${k.pelunasanPpjb||'—'}</td></tr>
+        <tr><td class="text-muted">ITJ / Diskon</td><td>${F.IDR(k.itj)} / ${F.IDR(k.diskon)}</td></tr>
+        <tr><td class="text-muted">PTB / Terbayar / Sisa</td><td>${F.IDR(k.ptb)} / ${F.IDR(k.ptbTerbayar)} / ${F.IDR(k.sisaPtb)}</td></tr>
+      </tbody></table></div>
+    </article>`)}
+  ${panel('konstruksi', `
+    <article class="card">
+      <div class="card-header"><h3 class="card-title">Konstruksi</h3></div>
+      <div class="table-wrap"><table class="data-table"><tbody>
+        <tr><td class="text-muted">Kontraktor</td><td>${k.kontraktor||'—'}</td></tr>
+        <tr><td class="text-muted">Nilai Kontrak</td><td class="num">${F.IDR(k.nilaiKontrak)}</td></tr>
+        <tr><td class="text-muted">Terbayar Kontraktor</td><td class="num">${F.IDR(k.terbayarKontraktor)}</td></tr>
+        <tr><td class="text-muted">Sisa Bayar</td><td class="num">${F.IDR(k.sisaKontraktor)}</td></tr>
+        <tr><td class="text-muted">Progres</td><td>${(k.progresBangun||0).toFixed(0)}%</td></tr>
+        <tr><td class="text-muted">Tgl Serah Terima</td><td>${k.tglSerahTerima||'—'}</td></tr>
+        <tr><td class="text-muted">Masa Retensi</td><td>${k.masaRetensi||'—'} hari</td></tr>
+        <tr><td class="text-muted">Adendum</td><td class="num">${F.IDR(k.adendum)}</td></tr>
+      </tbody></table></div>
+      ${progItems.length ? `<h4 class="mt-4">Riwayat progres</h4><ul style="list-style:none">${progItems.map(p =>
+        `<li style="padding:6px 0;border-bottom:1px solid var(--border)">${p.Tanggal||p.tanggal||''} — ${p.Persentase||p.persentase||0}% (${p['Dicatat oleh']||p.dicatat||'—'})</li>`
+      ).join('')}</ul>` : ''}
+    </article>`)}
+  ${panel('furnitur', `
+    <article class="card">
+      <div class="card-header"><h3 class="card-title">Furnitur &amp; Perlengkapan</h3></div>
+      ${furnItems.length ? `<div class="table-wrap"><table class="data-table"><thead><tr><th>Item</th><th class="num">Nilai</th><th class="num">Pasang</th><th>Terbayar</th></tr></thead>
+      <tbody>${furnItems.map(f => `<tr>
+        <td>${f.Item||f.item||'—'}</td>
+        <td class="num">${F.IDR(Number(String(f.Nilai||f.nilai||0).replace(/[^\d]/g,''))||0)}</td>
+        <td class="num">${F.IDR(Number(String(f['Biaya Pasang']||0).replace(/[^\d]/g,''))||0)}</td>
+        <td>${f['Terbayar / Terbeli']||f.terbayar||'—'}</td>
+      </tr>`).join('')}</tbody></table></div>` : '<p class="text-muted">Belum ada data furnitur untuk kavling ini.</p>'}
+    </article>`)}
+  ${panel('legal', `
+    <article class="card">
+      <div class="card-header"><h3 class="card-title">Dokumen Legal</h3></div>
+      <div class="table-wrap"><table class="data-table"><thead><tr><th>Dokumen</th><th>Status</th><th class="num">Tagihan</th></tr></thead>
+      <tbody>
+        <tr><td>BPHTB</td><td>${k.legal&&k.legal.bphtb||'—'}</td><td class="num">${F.IDR(k.legal&&k.legal.bphtbTagihan||0)}</td></tr>
+        <tr><td>PPH</td><td>${k.legal&&k.legal.pph||'—'}</td><td class="num">${F.IDR(k.legal&&k.legal.pphTagihan||0)}</td></tr>
+        <tr><td>AJB &amp; Balik Nama</td><td>${k.legal&&k.legal.ajb||'—'}</td><td class="num">${F.IDR(k.legal&&k.legal.ajbTagihan||0)}</td></tr>
+        <tr><td>SLF</td><td>${k.legal&&k.legal.slf||'—'}</td><td class="num">${F.IDR(k.legal&&k.legal.slfTagihan||0)}</td></tr>
+      </tbody></table></div>
+      ${k.catatanLegal ? `<p class="mt-2 text-muted">Catatan: ${k.catatanLegal}</p>` : ''}
+    </article>`)}
+  ${panel('riwayat', `
+    <article class="card">
+      <div class="card-header"><h3 class="card-title">Riwayat</h3></div>
+      <ul style="list-style:none;font-size:13px">
+        <li style="padding:8px 0;border-bottom:1px solid var(--border)">02 Okt 2026 — Data dimuat dari extract database</li>
+        ${k.tglPpjb ? `<li style="padding:8px 0;border-bottom:1px solid var(--border)">${k.tglPpjb} — PPJB / status: ${k.statusRaw||k.status}</li>` : ''}
+        ${k.tglTerjual ? `<li style="padding:8px 0">${k.tglTerjual} — Tanggal terjual</li>` : ''}
+      </ul>
+    </article>`)}
+  `;
+
+  AdhShell.mount({ role: 'Teknik', title: (k.kavling||k.code) + ' · Detail Kavling', content: content });
+
+  document.querySelectorAll('.tab-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('.tab-btn').forEach(function (b) { b.className = 'btn btn-ghost btn-sm tab-btn'; });
+      btn.className = 'btn btn-secondary btn-sm tab-btn active';
+      document.querySelectorAll('.tab-panel').forEach(function (p) { p.style.display = 'none'; });
+      var panel = document.getElementById('panel-' + btn.dataset.tab);
+      if (panel) panel.style.display = 'block';
+    });
+  });
+});
+</script>
+</body>
+</html>

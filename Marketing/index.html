@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Home Marketing — Adhiland Finance</title>
+<script>
+(function(){try{var t=localStorage.getItem('adh_theme');
+document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}
+catch(e){document.documentElement.setAttribute('data-theme','light');}})();
+</script>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/app.css">
+</head>
+<body>
+<div id="app"></div>
+<script src="../assets/js/fmt.js"></script>
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/shell.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async function () {
+  await AdhData.load();
+  const D = AdhData, F = fmt;
+  const funnel = D.STOK.funnel || {};
+  const pgj = D.filterPengajuan({ role: 'Marketing', status: 'menunggu' });
+
+  const deals = (D.KAVLING || [])
+    .filter(function (k) { return (k.status || '').toLowerCase() === 'deal'; })
+    .sort(function (a, b) { return (b.sisa || 0) - (a.sisa || 0); })
+    .slice(0, 12);
+
+  const dealRows = deals.length
+    ? deals.map(function (k) {
+        return '<tr>' +
+          '<td><a href="stok.html">' + (k.kavling || k.code || '#' + k.id) + '</a></td>' +
+          '<td>' + (k.proyek || '—').replace('EazyKost ', '').replace(' Garden', '') + '</td>' +
+          '<td>' + (k.pembeli || '—') + '</td>' +
+          '<td class="num">' + F.IDR(k.hargaDeal || k.hargaDaftar || 0, 'compact') + '</td>' +
+          '<td class="num">' + F.IDR(k.terbayar || 0, 'compact') + '</td>' +
+          '<td class="num">' + F.IDR(k.sisa || 0, 'compact') + '</td>' +
+          '<td>' + (k.marketing || '—') + '</td>' +
+          '</tr>';
+      }).join('')
+    : '<tr><td colspan="7" class="text-muted">Tidak ada deal belum bayar</td></tr>';
+
+  const byProj = {};
+  (D.KAVLING || []).forEach(function (k) {
+    const key = k.proyekId || k.proyek || '—';
+    if (!byProj[key]) byProj[key] = { name: k.proyek || key, belum: 0, deal: 0, bertahap: 0, cash: 0 };
+    const st = (k.status || '').toLowerCase();
+    if (st === 'belum') byProj[key].belum++;
+    else if (st === 'deal') byProj[key].deal++;
+    else if (st === 'bertahap') byProj[key].bertahap++;
+    else if (st === 'cash') byProj[key].cash++;
+  });
+  const stokRows = Object.values(byProj).map(function (p) {
+    return '<tr><td>' + p.name + '</td><td class="num">' + p.belum + '</td><td class="num">' + p.deal +
+      '</td><td class="num">' + p.bertahap + '</td><td class="num">' + p.cash + '</td></tr>';
+  }).join('');
+
+  const content = `
+    <div class="global-bar">
+      <span class="filter-label">Home Marketing</span>
+      <span class="text-muted" style="font-size:12px;margin-left:auto">Data per ${F.dateTime(D.AS_OF)}</span>
+    </div>
+    <section class="kpi-grid">
+      <article class="kpi-card">
+        <div class="kpi-label">Stok belum terjual</div>
+        <div class="kpi-value">${D.STOK.belumTerjual}</div>
+        <div class="kpi-sub">Potensi ${F.IDR(D.STOK.potensi, 'compact')}</div>
+      </article>
+      <article class="kpi-card">
+        <div class="kpi-label">Deal–belum bayar</div>
+        <div class="kpi-value">${funnel.dealBelumBayar || 0}</div>
+        <div class="kpi-sub">Perlu follow-up pembayaran</div>
+      </article>
+      <article class="kpi-card">
+        <div class="kpi-label">Uang masuk</div>
+        <div class="kpi-value">${F.IDR(D.SALES.uangMasuk, 'compact')}</div>
+        <div class="kpi-sub">${F.pct(D.SALES.rasioMasuk)} dari PPJB</div>
+      </article>
+      <article class="kpi-card">
+        <div class="kpi-label">Pengajuan Marketing</div>
+        <div class="kpi-value">${pgj.length}</div>
+        <div class="kpi-sub">Menunggu</div>
+      </article>
+    </section>
+
+    <div class="zone zone-2-7-5">
+      <article class="card">
+        <div class="card-header">
+          <h3 class="card-title">Follow-up ${funnel.dealBelumBayar || deals.length} deal belum bayar</h3>
+          <div class="card-actions"><a class="btn btn-ghost btn-sm" href="stok.html">Stok lengkap</a></div>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr><th>Kavling</th><th>Proyek</th><th>Pembeli</th><th class="num">Harga deal</th><th class="num">Terbayar</th><th class="num">Sisa</th><th>Marketing</th></tr>
+            </thead>
+            <tbody>${dealRows}</tbody>
+          </table>
+        </div>
+        <p class="text-muted mt-2" style="font-size:12px">Sumber: kavling.json · status = deal · top 12 by sisa</p>
+      </article>
+      <article class="card">
+        <div class="card-header"><h3 class="card-title">Stok per proyek</h3></div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Proyek</th><th class="num">Belum</th><th class="num">Deal</th><th class="num">Bertahap</th><th class="num">Cash</th></tr></thead>
+            <tbody>${stokRows || '<tr><td colspan="5" class="text-muted">—</td></tr>'}</tbody>
+          </table>
+        </div>
+      </article>
+    </div>
+  `;
+  AdhShell.mount({ role: 'Marketing', title: 'Home Marketing', content });
+});
+</script>
+</body>
+</html>

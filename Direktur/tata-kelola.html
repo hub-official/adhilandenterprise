@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tata Kelola Finance — Adhiland</title>
+<script>
+(function(){try{var t=localStorage.getItem('adh_theme');
+document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}
+catch(e){document.documentElement.setAttribute('data-theme','light');}})();
+</script>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/app.css">
+</head>
+<body>
+<div id="app"></div>
+<script src="../assets/js/fmt.js"></script>
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/local-state.js"></script>
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/shell.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async function () {
+  const F = fmt;
+  const ROLE = 'Direktur';
+  const LS = window.AdhLocalState;
+  await AdhData.load();
+
+  function render() {
+    const snap = LS.getFinanceSnapshot();
+    const audit = LS.getAuditLog(40);
+    const serapan = snap.anggaran > 0 ? (snap.realisasi / snap.anggaran * 100) : 0;
+    const commitPct = snap.anggaran > 0 ? (snap.commit / snap.anggaran * 100) : 0;
+
+    const auditRows = audit.map(function (a) {
+      return '<tr>' +
+        '<td style="font-size:11px;white-space:nowrap">' + String(a.at || '').slice(0, 19).replace('T', ' ') + '</td>' +
+        '<td>' + (a.aksi || '—') + '</td>' +
+        '<td class="text-muted" style="font-size:12px">' + (a.refId || '—') + '</td>' +
+        '<td style="font-size:12px">' + (a.by || '—') + '</td>' +
+        '<td class="text-muted" style="font-size:11px">' + (a.alasan ? (String(a.alasan).length > 50 ? String(a.alasan).slice(0, 50) + '…' : a.alasan) : '—') + '</td>' +
+        '</tr>';
+    }).join('');
+
+    const content =
+    '<p class="text-muted" style="font-size:12px;margin:0 0 12px">Laporan keputusan kas dari <strong>data + mock lokal</strong>. Angka forecast <em>indikatif</em> — bukan proyeksi bank. Tidak mengarang neraca/LR.</p>' +
+
+    '<h3 style="font-size:14px;margin:0 0 8px">Budget vs Actual vs Commit</h3>' +
+    '<section class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">' +
+      '<article class="kpi-card">' +
+        '<div class="kpi-label">Anggaran (rencana)</div>' +
+        '<div class="kpi-value">' + F.IDR(snap.anggaran, 'compact') + '</div>' +
+        '<div class="kpi-sub">dari BUDGET data</div>' +
+      '</article>' +
+      '<article class="kpi-card">' +
+        '<div class="kpi-label">Actual (terbayar mock)</div>' +
+        '<div class="kpi-value">' + F.IDR(snap.realisasi, 'compact') + '</div>' +
+        '<div class="kpi-sub">serapan ' + serapan.toFixed(1).replace('.', ',') + '% · dibayar ' + snap.dibayarN + ' item</div>' +
+      '</article>' +
+      '<article class="kpi-card">' +
+        '<div class="kpi-label">Commit (disetujui belum bayar)</div>' +
+        '<div class="kpi-value">' + F.IDR(snap.commit, 'compact') + '</div>' +
+        '<div class="kpi-sub">' + snap.commitN + ' item · ' + commitPct.toFixed(1).replace('.', ',') + '% anggaran</div>' +
+      '</article>' +
+      '<article class="kpi-card">' +
+        '<div class="kpi-label">Antrian keputusan</div>' +
+        '<div class="kpi-value">' + (snap.menungguN + snap.reviewN) + '</div>' +
+        '<div class="kpi-sub">Direktur ' + F.IDR(snap.menunggu, 'compact') + ' · Review ' + F.IDR(snap.review, 'compact') + '</div>' +
+      '</article>' +
+    '</section>' +
+
+    '<article class="card" style="margin-top:12px">' +
+      '<div class="table-wrap"><table class="data-table">' +
+        '<thead><tr><th>Komponen</th><th class="num">Nilai</th><th>Keterangan</th></tr></thead>' +
+        '<tbody>' +
+          '<tr><td>Anggaran</td><td class="num">' + F.IDR(snap.anggaran) + '</td><td class="text-muted">Rencana</td></tr>' +
+          '<tr><td>Actual (realisasi + mock bayar)</td><td class="num">' + F.IDR(snap.realisasi) + '</td><td class="text-muted">Termasuk F4 mark paid</td></tr>' +
+          '<tr><td>Commit (Disetujui)</td><td class="num">' + F.IDR(snap.commit) + '</td><td class="text-muted">Belum dibayar — beban kas berkomitmen</td></tr>' +
+          '<tr><td>Menunggu Direktur</td><td class="num">' + F.IDR(snap.menunggu) + '</td><td class="text-muted">' + snap.menungguN + ' item</td></tr>' +
+          '<tr><td>Menunggu review Finance</td><td class="num">' + F.IDR(snap.review) + '</td><td class="text-muted">' + snap.reviewN + ' item</td></tr>' +
+          '<tr><td>Sudah Dibayar (mock)</td><td class="num">' + F.IDR(snap.dibayar) + '</td><td class="text-muted">' + snap.dibayarN + ' item</td></tr>' +
+        '</tbody>' +
+      '</table></div>' +
+    '</article>' +
+
+    '<h3 style="font-size:14px;margin:16px 0 8px">Cash forecast (indikatif)</h3>' +
+    '<section class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">' +
+      '<article class="kpi-card">' +
+        '<div class="kpi-label">Kas saat ini</div>' +
+        '<div class="kpi-value">' + F.IDR(snap.kas, 'compact') + '</div>' +
+        '<div class="kpi-sub">setelah mock bayar</div>' +
+      '</article>' +
+      '<article class="kpi-card">' +
+        '<div class="kpi-label">Forecast ~30 hari</div>' +
+        '<div class="kpi-value" style="color:' + (snap.forecast30 < 0 ? 'var(--danger)' : 'inherit') + '">' + F.IDR(snap.forecast30, 'compact') + '</div>' +
+        '<div class="kpi-sub">kas − menunggu − commit − tempo + proxy masuk</div>' +
+      '</article>' +
+      '<article class="kpi-card">' +
+        '<div class="kpi-label">Forecast ~60 hari</div>' +
+        '<div class="kpi-value" style="color:' + (snap.forecast60 < 0 ? 'var(--danger)' : 'inherit') + '">' + F.IDR(snap.forecast60, 'compact') + '</div>' +
+        '<div class="kpi-sub">+ proxy masuk tambahan (indikatif)</div>' +
+      '</article>' +
+      '<article class="kpi-card">' +
+        '<div class="kpi-label">Forecast ~90 hari</div>' +
+        '<div class="kpi-value" style="color:' + (snap.forecast90 < 0 ? 'var(--danger)' : 'inherit') + '">' + F.IDR(snap.forecast90, 'compact') + '</div>' +
+        '<div class="kpi-sub">tempo ' + F.IDR(snap.tempo, 'compact') + ' · proxy ' + F.IDR(snap.masukProxy, 'compact') + '</div>' +
+      '</article>' +
+    '</section>' +
+    '<p class="text-muted" style="font-size:11px;margin:6px 0 0">Proxy masuk ≈ 2% uang masuk penjualan (bukan jadwal tagihan nyata). Label: indikatif.</p>' +
+
+    '<div class="global-bar" style="margin-top:16px">' +
+      '<h3 style="font-size:14px;margin:0">Audit log keputusan (mock lokal)</h3>' +
+      '<div class="filter-group" style="margin-left:auto;gap:8px">' +
+        '<button class="btn btn-ghost btn-sm" id="btn-export-audit">Export CSV audit</button>' +
+        '<button class="btn btn-ghost btn-sm" id="btn-export-antrian">Export CSV antrian</button>' +
+        '<button class="btn btn-ghost btn-sm" id="btn-export-siap">Export CSV siap bayar</button>' +
+      '</div>' +
+    '</div>' +
+    '<article class="card">' +
+      '<div class="table-wrap"><table class="data-table">' +
+        '<thead><tr><th>Waktu</th><th>Aksi</th><th>Ref</th><th>Oleh</th><th>Alasan</th></tr></thead>' +
+        '<tbody>' + (auditRows || '<tr><td colspan="5" class="text-muted">Belum ada keputusan mock di sesi ini — approve/reject/loloskan/bayar akan tercatat di sini</td></tr>') + '</tbody>' +
+      '</table></div>' +
+      '<p class="text-muted mt-2" style="font-size:12px">' + audit.length + ' entri (maks 200, sessionStorage) · tidak dikirim ke server</p>' +
+    '</article>';
+
+    AdhShell.mount({ role: ROLE, title: 'Tata Kelola Finance', content: content });
+
+    document.getElementById('btn-export-audit') && document.getElementById('btn-export-audit').addEventListener('click', function () {
+      var rows = LS.getAuditLog();
+      LS.exportCsv('audit-log-' + new Date().toISOString().slice(0, 10) + '.csv', rows.map(function (a) {
+        return { at: a.at, aksi: a.aksi, refId: a.refId, by: a.by, alasan: a.alasan || '' };
+      }), ['at', 'aksi', 'refId', 'by', 'alasan']);
+    });
+    document.getElementById('btn-export-antrian') && document.getElementById('btn-export-antrian').addEventListener('click', function () {
+      var rows = (AdhData.PENGAJUAN || []).filter(function (p) {
+        var s = (p.status || '').toLowerCase();
+        return s === 'menunggu' || s === 'menunggu review';
+      }).map(function (p) {
+        return { id: p.id, status: p.status, sumberRole: p.sumberRole, proyek: p.proyek || p.cluster, jenis: p.jenis, jumlah: p.jumlah, pemohon: p.pemohon };
+      });
+      LS.exportCsv('antrian-' + new Date().toISOString().slice(0, 10) + '.csv', rows, ['id', 'status', 'sumberRole', 'proyek', 'jenis', 'jumlah', 'pemohon']);
+    });
+    document.getElementById('btn-export-siap') && document.getElementById('btn-export-siap').addEventListener('click', function () {
+      var rows = (AdhData.PENGAJUAN || []).filter(function (p) {
+        return (p.status || '').toLowerCase() === 'disetujui';
+      }).map(function (p) {
+        return { id: p.id, proyek: p.proyek || p.cluster, jenis: p.jenis, jumlah: p.jumlah, rekening: p.rekening || '', sumberRole: p.sumberRole };
+      });
+      LS.exportCsv('siap-bayar-' + new Date().toISOString().slice(0, 10) + '.csv', rows, ['id', 'proyek', 'jenis', 'jumlah', 'rekening', 'sumberRole']);
+    });
+  }
+  render();
+});
+</script>
+</body>
+</html>

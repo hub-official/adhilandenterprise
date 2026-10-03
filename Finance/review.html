@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Antrian Review Finance — Adhiland</title>
+<script>
+(function(){try{var t=localStorage.getItem('adh_theme');
+document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}
+catch(e){document.documentElement.setAttribute('data-theme','light');}})();
+</script>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/app.css">
+</head>
+<body>
+<div id="app"></div>
+<script src="../assets/js/fmt.js"></script>
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/local-state.js"></script>
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/shell.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async function () {
+  const F = fmt;
+  const ROLE = 'Finance';
+  const LS = window.AdhLocalState;
+  await AdhData.load();
+  let statusFilter = 'menunggu review';
+  let roleFilter = 'semua';
+  let returnTarget = null;
+  const LIMIT = LS.LIMIT_APPROVE_FINANCE || 10000000;
+  const ROLE_CHIPS = ['semua', 'Direktur', 'Teknik', 'Legal', 'Operasional', 'Marketing'];
+
+  function normStatus(st) {
+    return (st || '').toLowerCase().replace(/_/g, ' ').trim();
+  }
+  function statusBadge(st) {
+    const s = normStatus(st);
+    var cls = 'rag-neutral';
+    if (s.indexOf('menunggu') >= 0) cls = 'rag-warn';
+    else if (s === 'disetujui' || s === 'dibayar') cls = 'rag-good';
+    else if (s === 'ditolak' || s === 'dikembalikan') cls = 'rag-bad';
+    return '<span class="status-badge ' + cls + '">' + (st || '—') + '</span>';
+  }
+  function isReviewQueue(p) {
+    return normStatus(p.status) === 'menunggu review';
+  }
+  function openReturnDrawer(ids) {
+    returnTarget = { ids: ids.slice() };
+    var overlay = document.getElementById('return-overlay');
+    var input = document.getElementById('return-alasan');
+    if (input) input.value = '';
+    if (overlay) { overlay.style.display = 'flex'; setTimeout(function () { input && input.focus(); }, 50); }
+  }
+  function closeReturnDrawer() {
+    returnTarget = null;
+    var overlay = document.getElementById('return-overlay');
+    if (overlay) overlay.style.display = 'none';
+  }
+  function confirmReturn() {
+    var input = document.getElementById('return-alasan');
+    var alasan = (input && input.value || '').trim();
+    if (!alasan) { LS.showToast('Alasan pengembalian wajib diisi', 'warn'); return; }
+    if (!returnTarget || !returnTarget.ids.length) return;
+    LS.setPengajuanStatusBulk(returnTarget.ids, 'Dikembalikan', alasan);
+    closeReturnDrawer();
+    LS.showToast('Dikembalikan (mock lokal)', 'info');
+    render();
+  }
+  function filterList() {
+    var list = AdhData.PENGAJUAN || [];
+    if (roleFilter !== 'semua') {
+      var r = roleFilter.toLowerCase();
+      list = list.filter(function (p) { return (p.sumberRole || '').toLowerCase() === r; });
+    }
+    var st = statusFilter.toLowerCase();
+    if (st !== 'semua') {
+      list = list.filter(function (p) {
+        var ps = normStatus(p.status);
+        if (st === 'menunggu review') return ps === 'menunggu review';
+        if (st === 'dikembalikan') return ps === 'dikembalikan';
+        if (st === 'menunggu') return ps === 'menunggu' || ps === 'menunggu direktur';
+        if (st === 'disetujui') return ps === 'disetujui';
+        return ps === st;
+      });
+    }
+    return list;
+  }
+
+  function render() {
+    var list = filterList();
+    var nReview = (AdhData.PENGAJUAN || []).filter(isReviewQueue).length;
+
+    var rows = list.map(function (p) {
+      var can = isReviewQueue(p);
+      var underLimit = LS.canFinanceApprove(p.jumlah);
+      var actions = '—';
+      if (can) {
+        actions =
+          '<button class="btn btn-primary btn-sm btn-pass" data-id="' + p.id + '">Loloskan</button> ' +
+          (underLimit
+            ? '<button class="btn btn-primary btn-sm btn-approve-limit" data-id="' + p.id + '" title="≤ limit Finance">Setujui (limit)</button> '
+            : '<span class="text-muted" style="font-size:10px" title="Di atas limit">→ Direktur</span> ') +
+          '<button class="btn btn-ghost btn-sm btn-return" data-id="' + p.id + '">Kembalikan</button>';
+      }
+      return '<tr>' +
+        '<td>' + p.id + '</td>' +
+        '<td>' + (p.proyek || p.cluster || '—') + '</td>' +
+        '<td>' + (p.jenis || '—') + '</td>' +
+        '<td class="num">' + F.IDR(p.jumlah) +
+          (can && underLimit ? ' <span class="text-muted" style="font-size:10px">≤limit</span>' : '') +
+          (can && !underLimit ? ' <span class="text-muted" style="font-size:10px">&gt;limit</span>' : '') +
+        '</td>' +
+        '<td>' + statusBadge(p.status) + '</td>' +
+        '<td class="text-muted" style="font-size:11px">' + (p.sumberRole || '') + '</td>' +
+        '<td style="white-space:nowrap">' + actions + '</td>' +
+        '</tr>';
+    }).join('');
+
+    var roleChipHtml = ROLE_CHIPS.map(function (r) {
+      return '<button class="chip ' + (roleFilter === r ? 'active' : '') + '" data-role="' + r + '">' + (r === 'semua' ? 'Semua' : r) + '</button>';
+    }).join('');
+
+    var content =
+    '<div class="global-bar" style="flex-wrap:wrap;gap:8px">' +
+      '<div class="filter-group" id="st-filters">' +
+        '<span class="filter-label">Status</span>' +
+        '<button class="chip ' + (statusFilter==='menunggu review'?'active':'') + '" data-st="menunggu review">Antrian (' + nReview + ')</button>' +
+        '<button class="chip ' + (statusFilter==='dikembalikan'?'active':'') + '" data-st="dikembalikan">Dikembalikan</button>' +
+        '<button class="chip ' + (statusFilter==='menunggu'?'active':'') + '" data-st="menunggu">Lolos ke Direktur</button>' +
+        '<button class="chip ' + (statusFilter==='disetujui'?'active':'') + '" data-st="disetujui">Disetujui (limit)</button>' +
+        '<button class="chip ' + (statusFilter==='semua'?'active':'') + '" data-st="semua">Semua</button>' +
+      '</div>' +
+    '</div>' +
+    '<div class="global-bar" style="padding-top:0">' +
+      '<div class="filter-group" id="role-filters"><span class="filter-label">Sumber role</span>' + roleChipHtml + '</div>' +
+    '</div>' +
+    '<p class="text-muted" style="font-size:12px;margin:0 0 12px">Limit approve Finance: <strong>' + F.IDR(LIMIT) + '</strong>. Di bawah limit boleh <em>Setujui (limit)</em> → Disetujui. Di atas hanya Loloskan ke Direktur.</p>' +
+    '<article class="card">' +
+      '<div class="table-wrap"><table class="data-table">' +
+        '<thead><tr><th>ID</th><th>Proyek</th><th>Jenis</th><th class="num">Nilai</th><th>Status</th><th>Role</th><th>Aksi</th></tr></thead>' +
+        '<tbody>' + (rows || '<tr><td colspan="7" class="text-muted">Antrian kosong — unit harus mengajukan dulu</td></tr>') + '</tbody>' +
+      '</table></div>' +
+    '</article>' +
+    '<div id="return-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:center;justify-content:center">' +
+      '<div class="card" style="width:min(420px,92vw);padding:20px;margin:16px">' +
+        '<h3 style="margin:0 0 8px;font-size:16px">Kembalikan ke unit</h3>' +
+        '<textarea id="return-alasan" rows="3" style="width:100%;box-sizing:border-box;padding:8px;border-radius:6px;border:1px solid var(--border,#ccc);font:inherit" placeholder="Alasan wajib"></textarea>' +
+        '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">' +
+          '<button class="btn btn-ghost btn-sm" id="return-cancel">Batal</button>' +
+          '<button class="btn btn-primary btn-sm" id="return-confirm">Kembalikan</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+
+    AdhShell.mount({ role: ROLE, title: 'Antrian Review Finance', content: content });
+
+    document.querySelectorAll('#st-filters .chip').forEach(function (btn) {
+      btn.addEventListener('click', function () { statusFilter = btn.dataset.st; render(); });
+    });
+    document.querySelectorAll('#role-filters .chip').forEach(function (btn) {
+      btn.addEventListener('click', function () { roleFilter = btn.dataset.role; render(); });
+    });
+    document.querySelectorAll('.btn-pass').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        LS.setPengajuanStatus(btn.dataset.id, 'Menunggu');
+        LS.showToast('Lolos ke Direktur: ' + btn.dataset.id, 'info');
+        render();
+      });
+    });
+    document.querySelectorAll('.btn-approve-limit').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var row = (AdhData.PENGAJUAN || []).find(function (p) { return String(p.id) === String(btn.dataset.id); });
+        if (row && !LS.canFinanceApprove(row.jumlah)) {
+          LS.showToast('Di atas limit — gunakan Loloskan', 'warn');
+          return;
+        }
+        LS.setPengajuanStatus(btn.dataset.id, 'Disetujui');
+        LS.showToast('Disetujui Finance (dalam limit): ' + btn.dataset.id, 'info');
+        render();
+      });
+    });
+    document.querySelectorAll('.btn-return').forEach(function (btn) {
+      btn.addEventListener('click', function () { openReturnDrawer([btn.dataset.id]); });
+    });
+    document.getElementById('return-cancel') && document.getElementById('return-cancel').addEventListener('click', closeReturnDrawer);
+    document.getElementById('return-confirm') && document.getElementById('return-confirm').addEventListener('click', confirmReturn);
+    document.getElementById('return-overlay') && document.getElementById('return-overlay').addEventListener('click', function (e) {
+      if (e.target === e.currentTarget) closeReturnDrawer();
+    });
+  }
+  render();
+});
+</script>
+</body>
+</html>

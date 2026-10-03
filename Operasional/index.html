@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Home Operasional — Adhiland Finance</title>
+<script>
+(function(){try{var t=localStorage.getItem('adh_theme');
+document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}
+catch(e){document.documentElement.setAttribute('data-theme','light');}})();
+</script>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/app.css">
+</head>
+<body>
+<div id="app"></div>
+<script src="../assets/js/fmt.js"></script>
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/shell.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async function () {
+  await AdhData.load();
+  const D = AdhData, F = fmt;
+
+  // Anggaran ops dari budgeting_item (sama logika anggaran.html)
+  const itemsRaw = await D.loadReport('budgeting_item');
+  const allItems = Array.isArray(itemsRaw) ? itemsRaw : (itemsRaw.rows || []);
+  const opsItems = allItems.filter(function (r) {
+    const j = (r.jenis || '').toLowerCase();
+    const role = (r.sumberRole || '').toLowerCase();
+    return role === 'operasional' || j.indexOf('ops') >= 0 || j.indexOf('operasional') >= 0 ||
+           j.indexOf('gaji') >= 0 || j.indexOf('utilitas') >= 0 || j.indexOf('sewa') >= 0;
+  });
+  const list = opsItems.length ? opsItems : allItems.slice(0, 30);
+  const anggaran = list.reduce(function (s, r) { return s + (r.rencana || 0); }, 0);
+  const realisasi = list.reduce(function (s, r) { return s + (r.terbayar || 0); }, 0);
+  const serapanPct = anggaran ? (realisasi / anggaran) : 0;
+
+  // Jatuh tempo: item belum lunas dengan jatuhTempo <= 7 hari ke depan / sudah lewat
+  const now = new Date();
+  const in7 = new Date(now.getTime() + 7 * 86400000);
+  const jatuhTempoOps = list.filter(function (r) {
+    if (!r.jatuhTempo) return false;
+    if ((r.sisa || 0) <= 0 && (r.status || '').toLowerCase().indexOf('lunas') >= 0) return false;
+    const t = new Date(r.jatuhTempo);
+    return !isNaN(t) && t <= in7;
+  }).length;
+
+  // Pengajuan role Operasional
+  const pgjMenunggu = D.filterPengajuan({ role: 'Operasional', status: 'menunggu' });
+  const pgjAll = D.filterPengajuan({ role: 'Operasional' });
+  const pgjShow = (pgjAll.length ? pgjAll : D.filterPengajuan({})).slice(0, 8);
+
+  function statusBadge(st) {
+    const s = (st || '').toLowerCase();
+    const cls = s === 'menunggu' ? 'rag-warn' : s === 'disetujui' ? 'rag-info' : s === 'ditolak' ? 'rag-danger' : 'rag-neutral';
+    return '<span class="status-badge ' + cls + '">' + (st || '—') + '</span>';
+  }
+
+  const tableRows = pgjShow.length
+    ? pgjShow.map(function (p) {
+        return '<tr>' +
+          '<td>' + (p.id || '—') + '</td>' +
+          '<td>' + (p.jenis || '—') + '</td>' +
+          '<td>' + (p.proyek || p.cluster || '—') + '</td>' +
+          '<td class="num">' + F.IDR(p.jumlah || 0, 'compact') + '</td>' +
+          '<td>' + statusBadge(p.status) + '</td>' +
+          '<td><a class="btn btn-ghost btn-sm" href="pengajuan.html">Detail</a></td>' +
+          '</tr>';
+      }).join('')
+    : '<tr><td colspan="6" class="text-muted">Tidak ada pengajuan operasional</td></tr>';
+
+  const content = `
+    <div class="global-bar">
+      <span class="filter-label">Home Operasional</span>
+      <span class="text-muted" style="font-size:12px;margin-left:auto">Data per ${F.dateTime(D.AS_OF)}</span>
+    </div>
+    <section class="kpi-grid">
+      <article class="kpi-card">
+        <div class="kpi-label">Anggaran Operasional</div>
+        <div class="kpi-value">${F.IDR(anggaran, 'compact')}</div>
+        <div class="kpi-sub">${list.length} item budgeting</div>
+      </article>
+      <article class="kpi-card">
+        <div class="kpi-label">Realisasi Ops</div>
+        <div class="kpi-value">${F.IDR(realisasi, 'compact')}</div>
+        <div class="kpi-sub">Serapan ${F.pct(serapanPct)}</div>
+      </article>
+      <article class="kpi-card">
+        <div class="kpi-label">Pengajuan menunggu</div>
+        <div class="kpi-value">${pgjMenunggu.length}</div>
+        <div class="kpi-sub">Role Operasional</div>
+      </article>
+      <article class="kpi-card">
+        <div class="kpi-label">Jatuh tempo ops</div>
+        <div class="kpi-value">${jatuhTempoOps}</div>
+        <div class="kpi-sub">≤ 7 hari / lewat</div>
+      </article>
+    </section>
+    <article class="card">
+      <div class="card-header">
+        <h3 class="card-title">Pengajuan operasional</h3>
+        <div class="card-actions">
+          <a class="btn btn-ghost btn-sm" href="pengajuan.html">Semua pengajuan</a>
+          <a class="btn btn-ghost btn-sm" href="anggaran.html">Anggaran</a>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>ID</th><th>Jenis</th><th>Proyek</th><th class="num">Nilai</th><th>Status</th><th></th></tr></thead>
+          <tbody>${tableRows}</tbody>
+        </table>
+      </div>
+      <p class="text-muted mt-2" style="font-size:12px">Sumber: budgeting_item.json · pengajuan.json (filter sumberRole Operasional)</p>
+    </article>
+  `;
+  AdhShell.mount({ role: 'Operasional', title: 'Home Operasional', content });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Realisasi Biaya — Adhiland Finance</title>
+<script>(function(){try{var t=localStorage.getItem('adh_theme');document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/app.css">
+</head>
+<body>
+<div id="app"></div>
+<script src="../assets/js/fmt.js"></script>
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/shell.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async function () {
+  await AdhData.load();
+  var F = fmt, D = AdhData;
+  var raw = await D.loadReport('budgeting_item');
+  var items = Array.isArray(raw) ? raw : (raw.rows || []);
+
+  // Agregat per jenis
+  var byJenis = {};
+  items.forEach(function (r) {
+    var key = (r.jenis || 'Lainnya').trim() || 'Lainnya';
+    if (!byJenis[key]) byJenis[key] = { rencana: 0, terbayar: 0, sisa: 0, n: 0 };
+    byJenis[key].rencana += r.rencana || 0;
+    byJenis[key].terbayar += r.terbayar || 0;
+    byJenis[key].sisa += r.sisa || 0;
+    byJenis[key].n += 1;
+  });
+  var jenisList = Object.keys(byJenis).sort(function (a, b) {
+    return byJenis[b].rencana - byJenis[a].rencana;
+  });
+
+  var totalRencana = 0, totalBayar = 0, totalSisa = 0;
+  var rows = jenisList.map(function (k) {
+    var x = byJenis[k];
+    totalRencana += x.rencana;
+    totalBayar += x.terbayar;
+    totalSisa += x.sisa;
+    var pct = x.rencana ? Math.round((x.terbayar / x.rencana) * 100) : 0;
+    return '<tr>' +
+      '<td>' + k + ' <span class="text-muted" style="font-size:11px">(' + x.n + ')</span></td>' +
+      '<td class="num">' + F.IDR(x.rencana, 'compact') + '</td>' +
+      '<td class="num">' + F.IDR(x.terbayar, 'compact') + '</td>' +
+      '<td class="num">' + F.IDR(x.sisa, 'compact') + '</td>' +
+      '<td><div class="in-cell-bar"><div class="bar-track"><div class="bar-fill" style="width:' + Math.min(100, pct) + '%;background:var(--info)"></div></div><span>' + pct + '%</span></div></td>' +
+      '</tr>';
+  }).join('');
+
+  // Per cluster
+  var byCluster = {};
+  items.forEach(function (r) {
+    var key = r.cluster || 'Lainnya';
+    if (!byCluster[key]) byCluster[key] = { rencana: 0, terbayar: 0, sisa: 0 };
+    byCluster[key].rencana += r.rencana || 0;
+    byCluster[key].terbayar += r.terbayar || 0;
+    byCluster[key].sisa += r.sisa || 0;
+  });
+  var clusterRows = Object.keys(byCluster).sort(function (a, b) {
+    return byCluster[b].rencana - byCluster[a].rencana;
+  }).map(function (k) {
+    var x = byCluster[k];
+    return '<tr><td>' + k + '</td><td class="num">' + F.IDR(x.rencana, 'compact') +
+      '</td><td class="num">' + F.IDR(x.terbayar, 'compact') +
+      '</td><td class="num">' + F.IDR(x.sisa, 'compact') + '</td></tr>';
+  }).join('');
+
+  var html =
+    '<div class="global-bar">' +
+      '<span class="filter-label">Realisasi Biaya</span>' +
+      '<span class="text-muted" style="font-size:12px;margin-left:auto">' + items.length + ' item budgeting · per ' + F.dateTime(D.AS_OF) + '</span>' +
+    '</div>' +
+    '<section class="kpi-grid">' +
+      '<article class="kpi-card"><div class="kpi-label">Total rencana</div><div class="kpi-value">' + F.IDR(totalRencana, 'compact') + '</div></article>' +
+      '<article class="kpi-card"><div class="kpi-label">Terbayar</div><div class="kpi-value">' + F.IDR(totalBayar, 'compact') + '</div></article>' +
+      '<article class="kpi-card"><div class="kpi-label">Sisa</div><div class="kpi-value">' + F.IDR(totalSisa, 'compact') + '</div></article>' +
+      '<article class="kpi-card"><div class="kpi-label">Serapan item</div><div class="kpi-value">' +
+        (totalRencana ? ((totalBayar / totalRencana) * 100).toFixed(1).replace('.', ',') : 0) + '%</div></article>' +
+    '</section>' +
+    '<div class="zone zone-2-7-5">' +
+      '<article class="card"><div class="card-header"><h3 class="card-title">Per jenis pekerjaan</h3></div>' +
+        '<div class="table-wrap"><table class="data-table">' +
+          '<thead><tr><th>Jenis</th><th class="num">Rencana</th><th class="num">Terbayar</th><th class="num">Sisa</th><th>Serapan</th></tr></thead>' +
+          '<tbody>' + (rows || '<tr><td colspan="5" class="text-muted">Tidak ada data</td></tr>') + '</tbody></table></div></article>' +
+      '<article class="card"><div class="card-header"><h3 class="card-title">Per cluster / proyek</h3></div>' +
+        '<div class="table-wrap"><table class="data-table">' +
+          '<thead><tr><th>Cluster</th><th class="num">Rencana</th><th class="num">Terbayar</th><th class="num">Sisa</th></tr></thead>' +
+          '<tbody>' + (clusterRows || '<tr><td colspan="4" class="text-muted">—</td></tr>') + '</tbody></table></div></article>' +
+    '</div>' +
+    '<p class="text-muted mt-2" style="font-size:12px">Sumber: budgeting_item.json — heatmap dummy 16×12 dihapus. Angka realisasi masih banyak 0 sesuai snapshot.</p>';
+
+  AdhShell.mount({ role: 'Direktur', title: 'Realisasi Biaya', content: html });
+});
+</script>
+</body>
+</html>

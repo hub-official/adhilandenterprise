@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rekap Konstruksi — Adhiland Finance</title>
+<script>(function(){try{var t=localStorage.getItem('adh_theme');document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/app.css">
+</head>
+<body>
+<div id="app"></div>
+<script src="../assets/js/fmt.js"></script>
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/kavling-catalog.js"></script>
+<script src="../assets/js/shell.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async function () {
+  if (window.AdhData && AdhData.load) await AdhData.load();
+  var F = fmt, D = AdhData;
+  var kontraktor = ['DWI','JAINUL','RIADI','JAENAL','SKM'];
+  var cat = (window.AdhKavlingCatalog || []).filter(function(k){ return k.st !== 'belum'; }).slice(0, 40);
+  var rows = '';
+  cat.forEach(function(k, i) {
+    var progres = 15 + (k.id * 7) % 75;
+    var telat = progres > 70 ? 0 : (30 + (k.id * 13) % 500);
+    rows += '<tr><td><strong><a href="detail.html?id='+k.id+'">'+k.kode+'</a></strong></td>';
+    rows += '<td>'+k.proyek+'</td><td>'+kontraktor[k.id%5]+'</td>';
+    rows += '<td><div class="in-cell-bar"><div class="bar-track"><div class="bar-fill" style="width:'+progres+'%;background:var(--info)"></div></div><span>'+progres+'%</span></div></td>';
+    rows += '<td class="num">'+(telat||'\u2013')+'</td>';
+    rows += '<td><span class="status-badge '+(telat?'rag-bad':progres>80?'rag-good':'rag-info')+'">'+(telat?'Terlambat':progres>80?'Hampir selesai':'On progress')+'</span></td>';
+    rows += '<td class="num">'+F.IDR((20+(k.id%15))*1e6,'compact')+' (dummy)</td>';
+    rows += '<td><a class="btn btn-ghost btn-sm" href="detail.html?id='+k.id+'">Detail</a></td></tr>';
+  });
+  var html = '<div class="global-bar"><span class="filter-label">Rekap Konstruksi</span>';
+  html += '<div class="filter-group" style="margin-left:auto"><button class="btn btn-secondary btn-sm">Export</button></div></div>';
+  html += '<section class="kpi-grid"><article class="kpi-card"><div class="kpi-label">On Progress</div><div class="kpi-value">'+D.KONSTRUKSI.onProgress+'</div></article>';
+  html += '<article class="kpi-card"><div class="kpi-label">Terlambat</div><div class="kpi-value" style="color:var(--danger)">'+D.KONSTRUKSI.terlambat+'</div></article>';
+  html += '<article class="kpi-card"><div class="kpi-label">Close</div><div class="kpi-value">'+D.KONSTRUKSI.close+'</div></article>';
+  html += '<article class="kpi-card"><div class="kpi-label">Rata telat</div><div class="kpi-value">'+D.KONSTRUKSI.rataTelatHari+' hari</div></article></section>';
+  html += '<article class="card"><div class="card-header"><h3 class="card-title">Kavling terjual — klik kode untuk detail P-18</h3></div>';
+  html += '<div class="table-wrap"><table class="data-table"><thead><tr><th>Kavling</th><th>Proyek</th><th>Kontraktor</th><th>Progres</th><th class="num">Hari telat</th><th>Status</th><th class="num">Termin belum bayar</th><th></th></tr></thead>';
+  html += '<tbody>'+rows+'</tbody></table></div></article>';
+  AdhShell.mount({ role: 'Teknik', title: 'Rekap Konstruksi', content: html });
+});
+</script>
+</body>
+</html>

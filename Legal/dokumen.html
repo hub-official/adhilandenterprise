@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Matriks Dokumen Legal — Adhiland Finance</title>
+<script>(function(){try{var t=localStorage.getItem('adh_theme');document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/app.css">
+</head>
+<body>
+<div id="app"></div>
+<div id="drawer-host"></div>
+<script src="../assets/js/fmt.js"></script>
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/local-state.js"></script>
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/shell.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async function () {
+  await AdhData.load();
+  var F = fmt, D = AdhData, LS = AdhLocalState;
+  var docs = ['SLF','BAST','AJB','BPHTB','PPH','Balik Nama','SHGB'];
+  var docKeys = ['slf','bast','ajb','bphtb','pph','balikNama','shgb'];
+  var colors = {done:'var(--hm-done)',progress:'var(--hm-progress)',overdue:'var(--hm-overdue)',todo:'var(--hm-todo)'};
+  var labels = {done:'Selesai',progress:'Berjalan',overdue:'Lewat tenggat',todo:'Belum mulai'};
+
+  function parseRealStatus(val) {
+    var v = (val || '').toString().trim();
+    if (!v || v === '-' || v.toLowerCase() === 'belum') return 'todo';
+    if (v.indexOf('✓') >= 0 || v.toLowerCase().indexOf('selesai') >= 0) return 'done';
+    if (v.toLowerCase().indexOf('proses') >= 0 || v.toLowerCase().indexOf('berjalan') >= 0) return 'progress';
+    if (v.toLowerCase().indexOf('telat') >= 0 || v.toLowerCase().indexOf('lewat') >= 0) return 'overdue';
+    // has some text/date → treat as done/progress
+    if (v.length > 0) return 'done';
+    return 'todo';
+  }
+
+  function cellStatus(rowId, di, realVal) {
+    var ov = LS.getLegalStatus(rowId, docs[di]);
+    if (ov) return ov;
+    return parseRealStatus(realVal);
+  }
+
+  function closeDrawer() {
+    var host = document.getElementById('drawer-host');
+    host.innerHTML = '';
+  }
+
+  function openDrawer(row, di) {
+    var docName = docs[di];
+    var key = docKeys[di];
+    var current = cellStatus(row._id, di, row[key]);
+    var opts = ['todo','progress','overdue','done'].map(function (s) {
+      return '<label style="display:flex;align-items:center;gap:8px;padding:8px 0;cursor:pointer">' +
+        '<input type="radio" name="leg-st" value="' + s + '"' + (current===s?' checked':'') + '>' +
+        '<span style="display:inline-block;width:14px;height:14px;background:' + colors[s] + ';border-radius:3px"></span> ' +
+        labels[s] + '</label>';
+    }).join('');
+
+    var host = document.getElementById('drawer-host');
+    host.innerHTML =
+      '<div class="drawer-overlay open" id="leg-overlay">' +
+        '<div class="drawer" role="dialog" aria-label="Edit status dokumen">' +
+          '<div class="drawer-header">' +
+            '<h3 class="drawer-title">Edit ' + docName + '</h3>' +
+            '<button class="btn btn-ghost btn-sm" type="button" id="leg-close">✕</button>' +
+          '</div>' +
+          '<div class="drawer-body">' +
+            '<p style="font-size:13px;margin-bottom:12px"><strong>' + (row.kavling || row.no) + '</strong> · ' + (row.proyek || '') + '</p>' +
+            '<p class="text-muted" style="font-size:12px;margin-bottom:8px">Nilai asli: ' + (row[key] || '—') + '</p>' +
+            opts +
+            '<p class="text-muted mt-4" style="font-size:11px">Perubahan disimpan di sessionStorage (mock lokal). Refresh tetap mempertahankan status mock.</p>' +
+          '</div>' +
+          '<div class="drawer-footer">' +
+            '<button class="btn btn-ghost" type="button" id="leg-cancel">Batal</button>' +
+            '<button class="btn btn-primary" type="button" id="leg-save">Simpan</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+
+    function dismiss() { closeDrawer(); }
+    document.getElementById('leg-close').onclick = dismiss;
+    document.getElementById('leg-cancel').onclick = dismiss;
+    document.getElementById('leg-overlay').addEventListener('click', function (e) {
+      if (e.target.id === 'leg-overlay') dismiss();
+    });
+    document.addEventListener('keydown', function onEsc(e) {
+      if (e.key === 'Escape') { dismiss(); document.removeEventListener('keydown', onEsc); }
+    });
+    document.getElementById('leg-save').onclick = function () {
+      var sel = document.querySelector('input[name="leg-st"]:checked');
+      if (sel) LS.setLegalStatus(row._id, docName, sel.value);
+      closeDrawer();
+      render();
+    };
+  }
+
+  function render() {
+    var legalRows = (D.LEGAL_ROWS || []).slice();
+    // enrich with stable id
+    legalRows.forEach(function (r, i) { r._id = r.no || r.kavling || i; });
+
+    var counts = {done:0, progress:0, overdue:0, todo:0};
+    var body = '';
+    legalRows.forEach(function (r) {
+      body += '<tr><td><strong>' + (r.kavling || r.no || '—') + '</strong></td><td>' + (r.proyek || '—') + '</td>';
+      var done = 0;
+      docKeys.forEach(function (k, di) {
+        var st = cellStatus(r._id, di, r[k]);
+        counts[st] = (counts[st] || 0) + 1;
+        if (st === 'done') done++;
+        var icon = st==='done'?'✓':st==='overdue'?'!':st==='progress'?'⏱':'–';
+        body += '<td style="text-align:center">' +
+          '<button type="button" class="leg-cell" data-row="' + r._id + '" data-di="' + di + '" title="' + labels[st] + ' — klik untuk edit" ' +
+          'style="display:inline-block;width:22px;height:22px;background:' + colors[st] + ';border:none;border-radius:3px;font-size:11px;line-height:22px;color:var(--text-on-primary);cursor:pointer">' +
+          icon + '</button></td>';
+      });
+      body += '<td class="num">' + Math.round(done/7*100) + '%</td></tr>';
+    });
+
+    var html =
+      '<div class="global-bar"><span class="filter-label">Matriks Dokumen</span>' +
+      '<span class="text-muted" style="font-size:12px;margin-left:auto">' + legalRows.length + ' baris · klik sel untuk edit (mock lokal)</span></div>' +
+      '<section class="kpi-grid">' +
+        '<article class="kpi-card"><div class="kpi-label">Kelengkapan</div><div class="kpi-value">' + F.pct(D.LEGAL.pct) + '</div><div class="kpi-sub">' + D.LEGAL.done + '/' + D.LEGAL.target + '</div></article>' +
+        '<article class="kpi-card"><div class="kpi-label">Lewat tenggat</div><div class="kpi-value">' + counts.overdue + '</div><div class="kpi-sub">Sel di matriks</div></article>' +
+        '<article class="kpi-card"><div class="kpi-label">Berjalan</div><div class="kpi-value">' + counts.progress + '</div></article>' +
+        '<article class="kpi-card"><div class="kpi-label">Belum mulai</div><div class="kpi-value">' + counts.todo + '</div></article>' +
+      '</section>' +
+      '<article class="card"><div class="card-header"><h3 class="card-title">Heatmap dokumen — klik sel untuk ubah status</h3></div>' +
+      '<div class="table-wrap"><table class="data-table"><thead><tr><th>Kavling</th><th>Proyek</th>';
+    docs.forEach(function (d) { html += '<th style="text-align:center">' + d + '</th>'; });
+    html += '<th class="num">%</th></tr></thead><tbody>' + (body || '<tr><td colspan="10" class="text-muted">Tidak ada data legal.json</td></tr>') +
+      '</tbody></table></div>' +
+      '<p class="text-muted mt-2" style="font-size:12px">✓ Selesai · ⏱ Berjalan · ! Lewat · – Belum · Override sessionStorage (mock lokal)</p></article>';
+
+    AdhShell.mount({ role: 'Legal', title: 'Matriks Dokumen Legal', content: html });
+
+    document.querySelectorAll('.leg-cell').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var id = btn.dataset.row;
+        var di = Number(btn.dataset.di);
+        var row = legalRows.find(function (r) { return String(r._id) === String(id); });
+        if (row) openDrawer(row, di);
+      });
+    });
+  }
+  render();
+});
+</script>
+</body>
+</html>

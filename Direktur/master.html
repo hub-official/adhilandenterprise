@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Master Data — Adhiland Finance</title>
+<script>
+(function(){try{var t=localStorage.getItem('adh_theme');
+document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}
+catch(e){document.documentElement.setAttribute('data-theme','light');}})();
+</script>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/app.css">
+<style>
+  .master-tabs { display:flex; gap:4px; flex-wrap:wrap; }
+  .master-tabs .chip { cursor:pointer; }
+  .coa-row-header td { font-weight:600; background:var(--surface-2); color:var(--text-muted); font-size:12px; letter-spacing:.02em; }
+  .coa-indent-1 { padding-left: 1.25rem !important; }
+  .coa-indent-2 { padding-left: 2.25rem !important; }
+  .coa-indent-3 { padding-left: 3.25rem !important; }
+  .coa-indent-4 { padding-left: 4.25rem !important; }
+  .mono { font-variant-numeric: tabular-nums; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:12.5px; }
+  .filter-bar { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:12px; }
+  .filter-bar .form-input, .filter-bar .select-sm { height:34px; }
+  .pager { display:flex; gap:8px; align-items:center; justify-content:flex-end; margin-top:12px; }
+  .empty-state { text-align:center; padding:48px 16px; color:var(--text-muted); }
+  .kas-pill {
+    display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:999px;
+    font-size:11px; font-weight:600; background:var(--info-soft); color:var(--info);
+  }
+  .kas-pill.tunai { background:var(--success-soft); color:var(--success); }
+  .meta-strip { font-size:12px; color:var(--text-muted); }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<!-- Drawer -->
+<div class="drawer-overlay" id="drawer-overlay">
+  <aside class="drawer" id="drawer-panel" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
+    <div class="drawer-header">
+      <h2 class="drawer-title" id="drawer-title">Detail</h2>
+      <button type="button" class="btn-icon" id="drawer-close" aria-label="Tutup">✕</button>
+    </div>
+    <div class="drawer-body" id="drawer-body"></div>
+    <div class="drawer-footer">
+      <button type="button" class="btn btn-secondary" id="drawer-cancel">Tutup</button>
+      <button type="button" class="btn btn-primary" id="drawer-save">Simpan (mock)</button>
+    </div>
+  </aside>
+</div>
+<script src="../assets/js/fmt.js"></script>
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/shell.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async function () {
+  const F = fmt;
+  await AdhData.load();
+
+  let tab = 'coa';
+  let coaAll = [], vendorsAll = [], usersAll = [];
+  let coaPage = 1, vendorPage = 1, userPage = 1;
+  const PAGE = 50;
+  let coaQ = '', coaJenis = 'semua', coaOnlyLeaf = false, coaOnlyKas = false;
+  let vendorQ = '';
+  let selectedCoa = null;
+
+  const [coaRes, vendRes, userRes] = await Promise.all([
+    AdhData.loadReport('coa'),
+    AdhData.loadReport('vendors'),
+    AdhData.loadReport('users')
+  ]);
+  coaAll = (coaRes && coaRes.rows) || [];
+  vendorsAll = (vendRes && vendRes.rows) || [];
+  usersAll = (userRes && userRes.rows) || [];
+
+  function openDrawer(title, html) {
+    document.getElementById('drawer-title').textContent = title;
+    document.getElementById('drawer-body').innerHTML = html;
+    document.getElementById('drawer-overlay').classList.add('open');
+  }
+  function closeDrawer() {
+    document.getElementById('drawer-overlay').classList.remove('open');
+    selectedCoa = null;
+  }
+
+  function filterCoa() {
+    const q = coaQ.trim().toLowerCase();
+    return coaAll.filter(function (r) {
+      if (coaOnlyLeaf && r.isHeader) return false;
+      if (coaOnlyKas && !r.kas) return false;
+      if (coaJenis !== 'semua') {
+        if (coaJenis === 'header' && !r.isHeader) return false;
+        if (coaJenis === 'neraca' && r.jenis !== 'Neraca') return false;
+        if (coaJenis === 'laba-rugi' && r.jenis && r.jenis !== 'Neraca' && !r.isHeader) { /* keep */ }
+        else if (coaJenis === 'laba-rugi' && (r.jenis === 'Neraca' || (!r.jenis && !r.isHeader))) return false;
+      }
+      if (!q) return true;
+      return (r.kode || '').toLowerCase().indexOf(q) >= 0 ||
+             (r.nama || '').toLowerCase().indexOf(q) >= 0;
+    });
+  }
+
+  function kasBadge(kas) {
+    if (!kas) return '<span class="text-muted">—</span>';
+    const cls = String(kas).toUpperCase().indexOf('TUNAI') >= 0 ? 'tunai' : '';
+    return '<span class="kas-pill ' + cls + '">' + kas + '</span>';
+  }
+
+  function renderCoaTable() {
+    const filtered = filterCoa();
+    const pg = AdhData.paginate(filtered, coaPage, PAGE);
+    const rows = pg.rows.map(function (r) {
+      const indent = 'coa-indent-' + Math.min(4, r.depth || 0);
+      const cls = r.isHeader ? 'coa-row-header' : '';
+      const jenis = r.isHeader ? '<span class="text-muted">Grup</span>' :
+        (r.jenis || '—');
+      return '<tr class="' + cls + '" data-kode="' + (r.kode || '') + '">' +
+        '<td class="mono">' + (r.kode || '—') + '</td>' +
+        '<td class="' + indent + '">' + (r.nama || '—') + '</td>' +
+        '<td>' + jenis + '</td>' +
+        '<td>' + (r.saldoNormal || '—') + '</td>' +
+        '<td>' + kasBadge(r.kas) + '</td>' +
+        '<td class="text-muted" style="font-size:12px">' + (r.perusahaan || '—') + '</td>' +
+        '<td><button type="button" class="btn btn-ghost btn-sm btn-coa-edit" data-kode="' + (r.kode || '') + '">Edit</button></td>' +
+        '</tr>';
+    }).join('');
+
+    return {
+      html:
+        '<div class="filter-bar">' +
+          '<input class="form-input" id="coa-search" style="width:220px" placeholder="Cari kode / nama akun…" value="' + coaQ.replace(/"/g, '&quot;') + '">' +
+          '<select class="select-sm" id="coa-jenis">' +
+            '<option value="semua"' + (coaJenis==='semua'?' selected':'') + '>Semua jenis</option>' +
+            '<option value="header"' + (coaJenis==='header'?' selected':'') + '>Hanya grup</option>' +
+            '<option value="neraca"' + (coaJenis==='neraca'?' selected':'') + '>Neraca</option>' +
+          '</select>' +
+          '<label class="meta-strip" style="display:flex;align-items:center;gap:6px;cursor:pointer">' +
+            '<input type="checkbox" id="coa-leaf"' + (coaOnlyLeaf?' checked':'') + '> Hanya akun detail</label>' +
+          '<label class="meta-strip" style="display:flex;align-items:center;gap:6px;cursor:pointer">' +
+            '<input type="checkbox" id="coa-kas"' + (coaOnlyKas?' checked':'') + '> Hanya akun kas</label>' +
+          '<span class="meta-strip" style="margin-left:auto">' + filtered.length.toLocaleString('id-ID') + ' dari ' + coaAll.length.toLocaleString('id-ID') + ' akun</span>' +
+        '</div>' +
+        '<div class="table-wrap"><table class="data-table">' +
+          '<thead><tr><th style="width:120px">Kode</th><th>Nama Akun</th><th>Jenis</th><th>Saldo Normal</th><th>Kas</th><th>Cakupan</th><th style="width:72px"></th></tr></thead>' +
+          '<tbody>' + (rows || '<tr><td colspan="7" class="empty-state">Tidak ada akun cocok filter</td></tr>') + '</tbody>' +
+        '</table></div>' +
+        '<div class="pager">' +
+          '<span class="meta-strip">Halaman ' + pg.page + ' / ' + pg.pages + '</span>' +
+          '<button type="button" class="btn btn-secondary btn-sm" id="coa-prev"' + (pg.page<=1?' disabled':'') + '>← Prev</button>' +
+          '<button type="button" class="btn btn-secondary btn-sm" id="coa-next"' + (pg.page>=pg.pages?' disabled':'') + '>Next →</button>' +
+        '</div>',
+      pg: pg
+    };
+  }
+
+  function renderVendors() {
+    const q = vendorQ.trim().toLowerCase();
+    const filtered = vendorsAll.filter(function (v) {
+      if (!q) return true;
+      return (v.vendor || '').toLowerCase().indexOf(q) >= 0 ||
+             (v.namaRekening || '').toLowerCase().indexOf(q) >= 0 ||
+             (v.bank || '').toLowerCase().indexOf(q) >= 0 ||
+             (v.noRaw || '').indexOf(q) >= 0;
+    });
+    const pg = AdhData.paginate(filtered, vendorPage, PAGE);
+    const rows = pg.rows.map(function (v) {
+      return '<tr>' +
+        '<td>' + (v.vendor || '—') + '</td>' +
+        '<td>' + (v.bank || '—') + '</td>' +
+        '<td class="mono">' + (v.noRekening || '—') + '</td>' +
+        '<td>' + (v.namaRekening || '—') + '</td>' +
+        '</tr>';
+    }).join('');
+    return '<div class="filter-bar">' +
+        '<input class="form-input" id="vendor-search" style="width:240px" placeholder="Cari vendor / bank / rekening…" value="' + vendorQ.replace(/"/g,'&quot;') + '">' +
+        '<span class="meta-strip" style="margin-left:auto">' + filtered.length.toLocaleString('id-ID') + ' rekening</span>' +
+      '</div>' +
+      '<div class="table-wrap"><table class="data-table">' +
+        '<thead><tr><th>Vendor</th><th>Bank</th><th>No. Rekening</th><th>Nama Rekening</th></tr></thead>' +
+        '<tbody>' + (rows || '<tr><td colspan="4" class="empty-state">Tidak ada data</td></tr>') + '</tbody>' +
+      '</table></div>' +
+      '<div class="pager">' +
+        '<span class="meta-strip">Halaman ' + pg.page + ' / ' + pg.pages + '</span>' +
+        '<button type="button" class="btn btn-secondary btn-sm" id="vend-prev"' + (pg.page<=1?' disabled':'') + '>← Prev</button>' +
+        '<button type="button" class="btn btn-secondary btn-sm" id="vend-next"' + (pg.page>=pg.pages?' disabled':'') + '>Next →</button>' +
+      '</div>';
+  }
+
+  function renderUsers() {
+    const rows = usersAll.map(function (u) {
+      const st = (u.status || 'Aktif').toLowerCase() === 'aktif' ? 'rag-good' : 'rag-neutral';
+      return '<tr>' +
+        '<td class="mono">' + (u.username || '—') + '</td>' +
+        '<td>' + (u.nama || '—') + '</td>' +
+        '<td><span class="status-badge rag-info">' + (u.peran || '—') + '</span></td>' +
+        '<td>' + (u.cluster || '—') + '</td>' +
+        '<td><span class="status-badge ' + st + '">' + (u.status || 'Aktif') + '</span></td>' +
+        '</tr>';
+    }).join('');
+    return '<div class="table-wrap"><table class="data-table">' +
+      '<thead><tr><th>Username</th><th>Nama</th><th>Peran</th><th>Cluster</th><th>Status</th></tr></thead>' +
+      '<tbody>' + rows + '</tbody></table></div>' +
+      '<p class="meta-strip mt-2">Password hash tidak diekspor · ' + usersAll.length + ' pengguna</p>';
+  }
+
+  function renderProjects() {
+    const projs = AdhData.PROJECTS || [];
+    const rows = projs.map(function (p) {
+      return '<tr>' +
+        '<td class="mono">' + (p.kode || p.id) + '</td>' +
+        '<td><strong>' + (p.name || '—') + '</strong></td>' +
+        '<td>' + (p.short || '—') + '</td>' +
+        '<td class="text-muted">' + (p.alamat || '—') + '</td>' +
+        '<td class="mono text-muted">' + (p.npwp || '—') + '</td>' +
+        '</tr>';
+    }).join('');
+    return '<div class="table-wrap"><table class="data-table">' +
+      '<thead><tr><th>Kode</th><th>Nama Proyek</th><th>Singkatan</th><th>Alamat</th><th>NPWP</th></tr></thead>' +
+      '<tbody>' + rows + '</tbody></table></div>';
+  }
+
+  function bindCoaEvents() {
+    const search = document.getElementById('coa-search');
+    if (search) {
+      search.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { coaQ = search.value; coaPage = 1; render(); }
+      });
+      search.addEventListener('change', function () { coaQ = search.value; coaPage = 1; render(); });
+    }
+    document.getElementById('coa-jenis')?.addEventListener('change', function (e) {
+      coaJenis = e.target.value; coaPage = 1; render();
+    });
+    document.getElementById('coa-leaf')?.addEventListener('change', function (e) {
+      coaOnlyLeaf = e.target.checked; coaPage = 1; render();
+    });
+    document.getElementById('coa-kas')?.addEventListener('change', function (e) {
+      coaOnlyKas = e.target.checked; coaPage = 1; render();
+    });
+    document.getElementById('coa-prev')?.addEventListener('click', function () { coaPage--; render(); });
+    document.getElementById('coa-next')?.addEventListener('click', function () { coaPage++; render(); });
+    document.querySelectorAll('.btn-coa-edit').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        const kode = btn.getAttribute('data-kode');
+        const r = coaAll.find(function (x) { return x.kode === kode; });
+        if (!r) return;
+        selectedCoa = r;
+        const body =
+          '<div class="form-group"><label class="form-label">Kode</label>' +
+          '<input class="form-input" value="' + (r.kode || '') + '" readonly></div>' +
+          '<div class="form-group"><label class="form-label">Nama akun</label>' +
+          '<input class="form-input" id="edit-nama" value="' + String(r.nama || '').replace(/"/g, '&quot;') + '"></div>' +
+          '<div class="form-group"><label class="form-label">Jenis</label>' +
+          '<input class="form-input" value="' + (r.jenis || (r.isHeader ? 'Grup' : '—')) + '" readonly></div>' +
+          '<div class="form-group"><label class="form-label">Saldo normal</label>' +
+          '<input class="form-input" value="' + (r.saldoNormal || '—') + '" readonly></div>' +
+          '<div class="form-group"><label class="form-label">Klasifikasi kas</label>' +
+          '<input class="form-input" value="' + (r.kas || '—') + '" readonly></div>' +
+          '<div class="form-group"><label class="form-label">Cakupan perusahaan</label>' +
+          '<input class="form-input" value="' + (r.perusahaan || '—') + '" readonly></div>' +
+          '<p class="meta-strip">Perubahan disimpan lokal (mock) — belum ada API tulis.</p>';
+        openDrawer('Edit akun · ' + r.kode, body);
+      });
+    });
+  }
+
+  function render() {
+    const leafCount = coaAll.filter(function (c) { return !c.isHeader; }).length;
+    const kasCount = coaAll.filter(function (c) { return !!c.kas; }).length;
+    let panel = '';
+    if (tab === 'coa') panel = renderCoaTable().html;
+    else if (tab === 'vendor') panel = renderVendors();
+    else if (tab === 'user') panel = renderUsers();
+    else panel = renderProjects();
+
+    const content = `
+    <div class="global-bar">
+      <div class="master-tabs" id="master-tabs">
+        <button type="button" class="chip ${tab==='coa'?'active':''}" data-tab="coa">Chart of Accounts</button>
+        <button type="button" class="chip ${tab==='vendor'?'active':''}" data-tab="vendor">Rekening Vendor</button>
+        <button type="button" class="chip ${tab==='project'?'active':''}" data-tab="project">Proyek</button>
+        <button type="button" class="chip ${tab==='user'?'active':''}" data-tab="user">Pengguna</button>
+      </div>
+      <div class="filter-group" style="margin-left:auto">
+        <button type="button" class="btn btn-secondary btn-sm" id="btn-export">Export</button>
+        <button type="button" class="btn btn-primary btn-sm" id="btn-add">${tab==='coa'?'+ Akun baru':tab==='vendor'?'+ Rekening':'+ Tambah'}</button>
+      </div>
+    </div>
+    <section class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">
+      <article class="kpi-card">
+        <div class="kpi-label">Total akun CoA</div>
+        <div class="kpi-value">${coaAll.length.toLocaleString('id-ID')}</div>
+        <div class="kpi-sub">${leafCount} detail · ${coaAll.length - leafCount} grup</div>
+      </article>
+      <article class="kpi-card">
+        <div class="kpi-label">Akun kas / bank</div>
+        <div class="kpi-value">${kasCount}</div>
+        <div class="kpi-sub">TUNAI / BANK</div>
+      </article>
+      <article class="kpi-card">
+        <div class="kpi-label">Rekening vendor</div>
+        <div class="kpi-value">${vendorsAll.length.toLocaleString('id-ID')}</div>
+        <div class="kpi-sub">Nomor di-mask</div>
+      </article>
+      <article class="kpi-card">
+        <div class="kpi-label">Pengguna · Proyek</div>
+        <div class="kpi-value">${usersAll.length} · ${(AdhData.PROJECTS||[]).length}</div>
+        <div class="kpi-sub">RBAC per peran</div>
+      </article>
+    </section>
+    <article class="card">
+      <div class="card-header">
+        <h3 class="card-title">${tab==='coa'?'Bagan akun (Chart of Accounts)':tab==='vendor'?'Rekening vendor':tab==='user'?'Pengguna sistem':'Master proyek'}</h3>
+        <span class="meta-strip">Sumber: extract adhilandpro.com · 2026-10-02</span>
+      </div>
+      ${panel}
+    </article>`;
+
+    AdhShell.mount({ role: 'Direktur', title: 'Master Data', content: content });
+
+    document.querySelectorAll('#master-tabs .chip').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        tab = btn.getAttribute('data-tab');
+        coaPage = 1; vendorPage = 1;
+        render();
+      });
+    });
+    document.getElementById('btn-export')?.addEventListener('click', function () {
+      alert('Export mock: ' + tab + ' · ' + (tab==='coa'?coaAll.length:tab==='vendor'?vendorsAll.length:usersAll.length) + ' baris');
+    });
+    document.getElementById('btn-add')?.addEventListener('click', function () {
+      openDrawer('Tambah ' + tab, '<p class="meta-strip">Form create — mock UI. Backend belum terhubung.</p>');
+    });
+
+    if (tab === 'coa') bindCoaEvents();
+    if (tab === 'vendor') {
+      document.getElementById('vendor-search')?.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { vendorQ = e.target.value; vendorPage = 1; render(); }
+      });
+      document.getElementById('vend-prev')?.addEventListener('click', function () { vendorPage--; render(); });
+      document.getElementById('vend-next')?.addEventListener('click', function () { vendorPage++; render(); });
+    }
+  }
+
+  document.getElementById('drawer-close')?.addEventListener('click', closeDrawer);
+  document.getElementById('drawer-cancel')?.addEventListener('click', closeDrawer);
+  document.getElementById('drawer-overlay')?.addEventListener('click', function(e){ if(e.target.id==='drawer-overlay') closeDrawer(); });
+  document.getElementById('drawer-save')?.addEventListener('click', function () {
+    if (selectedCoa) {
+      const nama = document.getElementById('edit-nama');
+      if (nama) selectedCoa.nama = nama.value;
+      alert('Mock simpan: ' + selectedCoa.kode + ' · ' + selectedCoa.nama);
+    }
+    closeDrawer();
+    render();
+  });
+
+  render();
+});
+</script>
+</body>
+</html>

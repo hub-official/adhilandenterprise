@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Laba Rugi — Adhiland Finance</title>
+<script>(function(){try{var t=localStorage.getItem('adh_theme');document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/app.css">
+</head>
+<body>
+<div id="app"></div>
+<script src="../assets/js/fmt.js"></script>
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/shell.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async function () {
+  await AdhData.load();
+  var F = fmt, D = AdhData;
+
+  // Hanya proxy yang berdasar snapshot — tanpa beban gaji/utilitas invent
+  var pendapatan = (D.SALES && D.SALES.uangMasuk) || 0;
+  var ppjb = (D.SALES && D.SALES.ppjb) || 0;
+  var konstruksiRealisasi = (D.BUDGET && D.BUDGET.konstruksiRealisasi) || 0;
+  var anggaranOps = (D.BUDGET && D.BUDGET.anggaran) || 0;
+  var realisasiOps = (D.BUDGET && D.BUDGET.realisasi) || 0;
+
+  // HPP proxy = realisasi konstruksi (bukan angka ajaib 8,2 M)
+  var hpp = konstruksiRealisasi;
+  var bebanOps = realisasiOps; // 0 di snapshot
+  var labaKotor = pendapatan - hpp;
+  var labaOps = labaKotor - bebanOps;
+
+  var items = [
+    {kode:'4', nama:'Pendapatan (uang masuk konsumen)', saldo: pendapatan, group:true, src:'snapshot'},
+    {kode:'4.01', nama:'Uang masuk (proxy pendapatan kas)', saldo: pendapatan, src:'snapshot'},
+    {kode:'4.02', nama:'PPJB kontrak (bukan pendapatan akrual penuh)', saldo: ppjb, src:'info'},
+    {kode:'5', nama:'HPP / biaya konstruksi terealisasi', saldo: hpp, group:true, src:'snapshot'},
+    {kode:'5.01', nama:'Realisasi konstruksi', saldo: hpp, src:'snapshot'},
+    {kode:'', nama:'Laba kotor (proxy)', saldo: labaKotor, group:true, highlight:true, src:'proxy'},
+    {kode:'6', nama:'Beban operasional (realisasi budget ops)', saldo: bebanOps, group:true, src:'snapshot'},
+    {kode:'6.01', nama:'Realisasi anggaran operasional', saldo: bebanOps, src:'snapshot'},
+    {kode:'', nama:'Laba operasional (proxy)', saldo: labaOps, group:true, highlight:true, src:'proxy'}
+  ];
+
+  var rows = items.map(function (a) {
+    var style = a.group ? ' style="font-weight:600;background:var(--surface-2)"' : '';
+    if (a.highlight) style = ' style="font-weight:700;background:var(--primary-soft)"';
+    var tag = a.src === 'proxy' ? ' <span class="text-muted" style="font-size:10px">(proxy)</span>' :
+              a.src === 'info' ? ' <span class="text-muted" style="font-size:10px">(info)</span>' : '';
+    return '<tr' + style + '><td>' + a.kode + '</td><td>' + a.nama + tag + '</td><td class="num">' + F.IDR(a.saldo, 'compact') + '</td></tr>';
+  }).join('');
+
+  var html =
+    '<div class="global-bar">' +
+      '<span class="filter-label">Laba Rugi ringkas (proxy snapshot)</span>' +
+      '<span class="text-muted" style="font-size:12px;margin-left:auto">Per ' + F.dateTime(D.AS_OF) + '</span>' +
+    '</div>' +
+    '<section class="kpi-grid">' +
+      '<article class="kpi-card"><div class="kpi-label">Pendapatan (uang masuk)</div><div class="kpi-value">' + F.IDR(pendapatan, 'compact') + '</div><div class="kpi-sub">Snapshot SALES</div></article>' +
+      '<article class="kpi-card"><div class="kpi-label">HPP konstruksi</div><div class="kpi-value">' + F.IDR(hpp, 'compact') + '</div><div class="kpi-sub">Realisasi konstruksi</div></article>' +
+      '<article class="kpi-card"><div class="kpi-label">Laba kotor (proxy)</div><div class="kpi-value">' + F.IDR(labaKotor, 'compact') + '</div>' +
+        '<div class="kpi-sub">' + (pendapatan ? F.pct(labaKotor / pendapatan) : '—') + ' margin</div></article>' +
+      '<article class="kpi-card"><div class="kpi-label">Laba operasional (proxy)</div><div class="kpi-value">' + F.IDR(labaOps, 'compact') + '</div>' +
+        '<div class="kpi-sub">Ops realisasi ' + F.IDR(bebanOps, 'compact') + ' / anggaran ' + F.IDR(anggaranOps, 'compact') + '</div></article>' +
+    '</section>' +
+    '<article class="card"><div class="card-header"><h3 class="card-title">Laporan ringkas berbasis snapshot</h3></div>' +
+      '<div class="table-wrap"><table class="data-table"><thead><tr><th>Kode</th><th>Nama</th><th class="num">Saldo</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
+      '<p class="text-muted mt-2" style="font-size:12px">Bukan full accrual P&amp;L. Beban gaji/utilitas/marketing dummy dihapus. Hanya angka yang dapat ditelusuri ke aggregate.json (uang masuk, realisasi konstruksi, budget ops).</p></article>';
+
+  AdhShell.mount({ role: 'Direktur', title: 'Laba Rugi', content: html });
+});
+</script>
+</body>
+</html>

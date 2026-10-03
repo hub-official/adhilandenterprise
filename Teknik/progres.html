@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Progres Konstruksi — Adhiland Finance</title>
+<script>(function(){try{var t=localStorage.getItem('adh_theme');document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/app.css">
+</head>
+<body>
+<div id="app"></div>
+<div id="drawer-host"></div>
+<script src="../assets/js/fmt.js"></script>
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/local-state.js"></script>
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/shell.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async function () {
+  await AdhData.load();
+  var F = fmt, D = AdhData, LS = AdhLocalState;
+
+  function getPct(k) {
+    var ov = LS.getProgres(k.id);
+    if (ov != null && !isNaN(ov)) return ov;
+    return Number(k.progresBangun) || 0;
+  }
+
+  function closeDrawer() {
+    document.getElementById('drawer-host').innerHTML = '';
+  }
+
+  function openDrawer(k) {
+    var pct = getPct(k);
+    var host = document.getElementById('drawer-host');
+    host.innerHTML =
+      '<div class="drawer-overlay open" id="pr-overlay">' +
+        '<div class="drawer" role="dialog" aria-label="Update progres">' +
+          '<div class="drawer-header">' +
+            '<h3 class="drawer-title">Update progres</h3>' +
+            '<button class="btn btn-ghost btn-sm" type="button" id="pr-close">✕</button>' +
+          '</div>' +
+          '<div class="drawer-body">' +
+            '<p style="font-size:13px;margin-bottom:12px"><strong>' + (k.kavling || k.code) + '</strong> · ' + (k.proyek || '') + '</p>' +
+            '<p class="text-muted" style="font-size:12px">Kontraktor: ' + (k.kontraktor || '—') + ' · Data asli: ' + (Number(k.progresBangun)||0) + '%</p>' +
+            '<label class="form-label" for="pr-pct">Persen progres (0–100)</label>' +
+            '<input class="form-input" id="pr-pct" type="number" min="0" max="100" step="1" value="' + pct + '" style="max-width:120px">' +
+            '<p class="text-muted mt-4" style="font-size:11px">Disimpan di sessionStorage (mock lokal).</p>' +
+          '</div>' +
+          '<div class="drawer-footer">' +
+            '<button class="btn btn-ghost" type="button" id="pr-cancel">Batal</button>' +
+            '<button class="btn btn-primary" type="button" id="pr-save">Simpan</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+
+    function dismiss() { closeDrawer(); }
+    document.getElementById('pr-close').onclick = dismiss;
+    document.getElementById('pr-cancel').onclick = dismiss;
+    document.getElementById('pr-overlay').addEventListener('click', function (e) {
+      if (e.target.id === 'pr-overlay') dismiss();
+    });
+    document.addEventListener('keydown', function onEsc(e) {
+      if (e.key === 'Escape') { dismiss(); document.removeEventListener('keydown', onEsc); }
+    });
+    document.getElementById('pr-save').onclick = function () {
+      var v = Math.max(0, Math.min(100, Number(document.getElementById('pr-pct').value) || 0));
+      LS.setProgres(k.id, v);
+      closeDrawer();
+      render();
+    };
+  }
+
+  function render() {
+    var list = (D.KAVLING || []).filter(function (k) {
+      var st = (k.status || '').toLowerCase();
+      return st !== 'belum';
+    }).slice(0, 50);
+
+    var now = new Date();
+    var rows = list.map(function (k) {
+      var progres = getPct(k);
+      var telat = 0;
+      if (k.tglSerahTerima) {
+        var t = new Date(k.tglSerahTerima);
+        if (!isNaN(t) && t < now && progres < 100) telat = Math.round((now - t) / 86400000);
+      }
+      var stLabel = telat ? 'Terlambat' : progres >= 100 ? 'Selesai' : progres > 80 ? 'Hampir selesai' : 'On progress';
+      var stCls = telat ? 'rag-bad' : progres >= 100 || progres > 80 ? 'rag-good' : 'rag-info';
+      var mock = LS.getProgres(k.id) != null ? ' <span class="text-muted" style="font-size:10px">(mock lokal)</span>' : '';
+      return '<tr>' +
+        '<td><strong><a href="detail.html?id=' + k.id + '">' + (k.kavling || k.code || '#' + k.id) + '</a></strong></td>' +
+        '<td>' + (k.proyek || '—') + '</td>' +
+        '<td>' + (k.kontraktor || '—') + '</td>' +
+        '<td><div class="in-cell-bar"><div class="bar-track"><div class="bar-fill" style="width:' + Math.min(100, progres) + '%;background:var(--info)"></div></div><span>' + progres.toFixed(0) + '%</span>' + mock + '</div></td>' +
+        '<td class="num">' + (telat || '–') + '</td>' +
+        '<td><span class="status-badge ' + stCls + '">' + stLabel + '</span></td>' +
+        '<td><button type="button" class="btn btn-secondary btn-sm btn-edit-pr" data-id="' + k.id + '">Update %</button></td>' +
+        '</tr>';
+    }).join('');
+
+    var html =
+      '<div class="global-bar"><span class="filter-label">Progres Konstruksi</span>' +
+      '<span class="text-muted" style="font-size:12px;margin-left:auto">Update % = mock lokal (sessionStorage)</span></div>' +
+      '<section class="kpi-grid">' +
+        '<article class="kpi-card"><div class="kpi-label">On Progress</div><div class="kpi-value">' + (D.KONSTRUKSI.onProgress||0) + '</div></article>' +
+        '<article class="kpi-card"><div class="kpi-label">Terlambat</div><div class="kpi-value">' + (D.KONSTRUKSI.terlambat||0) + '</div></article>' +
+        '<article class="kpi-card"><div class="kpi-label">Close</div><div class="kpi-value">' + (D.KONSTRUKSI.close||0) + '</div></article>' +
+        '<article class="kpi-card"><div class="kpi-label">Rata telat</div><div class="kpi-value">' + (D.KONSTRUKSI.rataTelatHari||0) + ' hari</div></article>' +
+      '</section>' +
+      '<article class="card"><div class="card-header"><h3 class="card-title">Kavling terjual — update progres</h3></div>' +
+      '<div class="table-wrap"><table class="data-table">' +
+        '<thead><tr><th>Kavling</th><th>Proyek</th><th>Kontraktor</th><th>Progres</th><th class="num">Hari telat ST</th><th>Status</th><th></th></tr></thead>' +
+        '<tbody>' + (rows || '<tr><td colspan="7" class="text-muted">Tidak ada data</td></tr>') + '</tbody>' +
+      '</table></div>' +
+      '<p class="text-muted mt-2" style="font-size:12px">Sumber: kavling.json (progresBangun) · override sessionStorage</p></article>';
+
+    AdhShell.mount({ role: 'Teknik', title: 'Progres Konstruksi', content: html });
+
+    document.querySelectorAll('.btn-edit-pr').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var k = list.find(function (x) { return String(x.id) === String(btn.dataset.id); });
+        if (k) openDrawer(k);
+      });
+    });
+  }
+  render();
+});
+</script>
+</body>
+</html>

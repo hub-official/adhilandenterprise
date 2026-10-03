@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Home Legal — Adhiland Finance</title>
+<script>
+(function(){try{var t=localStorage.getItem('adh_theme');
+document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}
+catch(e){document.documentElement.setAttribute('data-theme','light');}})();
+</script>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/app.css">
+</head>
+<body>
+<div id="app"></div>
+<script src="../assets/js/fmt.js"></script>
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/shell.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async function () {
+  await AdhData.load();
+  const D = AdhData, F = fmt;
+
+  // Hitung kavling yang belum punya AJB dari legal.json
+  let butuhAjb = D.LEGAL.target - D.LEGAL.done; // fallback
+  try {
+    const legalRaw = await D.loadReport('legal');
+    const legalRows = Array.isArray(legalRaw) ? legalRaw : (legalRaw.rows || []);
+    if (legalRows.length) {
+      butuhAjb = legalRows.filter(function (r) {
+        const v = (r.ajb || '').toString().trim();
+        return !v || v.indexOf('✓') < 0;
+      }).length;
+    }
+  } catch (e) { /* keep fallback */ }
+
+  const content = `
+    <div class="global-bar">
+      <span class="filter-label">Home Legal</span>
+      <span class="text-muted" style="font-size:12px;margin-left:auto">Data per ${F.dateTime(D.AS_OF)}</span>
+    </div>
+
+    <section class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">
+      <article class="kpi-card">
+        <div class="kpi-label">Kelengkapan Legal <span class="status-badge rag-bad">Kritis</span></div>
+        <div class="kpi-value">${F.pct(D.LEGAL.pct)}</div>
+        <div class="kpi-sub">${D.LEGAL.done} / ${D.LEGAL.target} dokumen</div>
+      </article>
+      <article class="kpi-card">
+        <div class="kpi-label">Dokumen tertunda</div>
+        <div class="kpi-value">${F.num(D.LEGAL.target - D.LEGAL.done)}</div>
+        <div class="kpi-sub">Perlu ditindaklanjuti</div>
+      </article>
+      <article class="kpi-card">
+        <div class="kpi-label">Pengajuan Legal menunggu</div>
+        <div class="kpi-value">${(D.filterPengajuan?D.filterPengajuan({role:'Legal',status:'menunggu'}):[]).length}</div>
+        <div class="kpi-sub">Filter role Legal</div>
+      </article>
+      <article class="kpi-card">
+        <div class="kpi-label">Kavling butuh AJB</div>
+        <div class="kpi-value">${F.num(butuhAjb)}</div>
+        <div class="kpi-sub">Belum ada tanda selesai di legal.json</div>
+      </article>
+    </section>
+
+    <div class="zone zone-2-6-6">
+      <article class="card">
+        <div class="card-header">
+          <h3 class="card-title">Antrian prioritas dokumen</h3>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Kavling</th><th>Proyek</th><th>Dokumen</th><th>Status</th><th>Tenggat</th></tr></thead>
+            <tbody>
+              <tr><td><a href="detail.html?id=21">LG-012</a></td><td>Lumiera</td><td>AJB</td><td><span class="status-badge rag-bad">Terlambat</span></td><td>15 Agu 2026</td></tr>
+              <tr><td><a href="detail.html?id=22">LG-008</a></td><td>Lumiera</td><td>BPHTB</td><td><span class="status-badge rag-warn">Proses</span></td><td>10 Okt 2026</td></tr>
+              <tr><td><a href="detail.html?id=3">JA-003</a></td><td>Joyo</td><td>SLF</td><td><span class="status-badge rag-warn">Proses</span></td><td>20 Okt 2026</td></tr>
+              <tr><td><a href="detail.html?id=13">SG-001</a></td><td>Sigura</td><td>BAST</td><td><span class="status-badge rag-info">Belum</span></td><td>—</td></tr>
+              <tr><td><a href="detail.html?id=100">MR-002</a></td><td>Resort</td><td>SHGB</td><td><span class="status-badge rag-info">Belum</span></td><td>—</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
+      <article class="card">
+        <div class="card-header">
+          <h3 class="card-title">Heatmap status dokumen (ringkas)</h3>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;font-size:11px;text-align:center">
+          <div class="text-muted">Kavling</div>
+          <div class="text-muted">SLF</div><div class="text-muted">BAST</div><div class="text-muted">AJB</div>
+          <div class="text-muted">BPHTB</div><div class="text-muted">PPH</div><div class="text-muted">SHGB</div>
+          ${['LG-012','LG-008','JA-003','SG-001','MR-002'].map((k,i) => {
+            const colors = [
+              ['var(--hm-done)','var(--hm-progress)','var(--hm-overdue)','var(--hm-todo)','var(--hm-todo)','var(--hm-todo)'],
+              ['var(--hm-done)','var(--hm-done)','var(--hm-progress)','var(--hm-progress)','var(--hm-todo)','var(--hm-todo)'],
+              ['var(--hm-progress)','var(--hm-todo)','var(--hm-todo)','var(--hm-todo)','var(--hm-todo)','var(--hm-todo)'],
+              ['var(--hm-todo)','var(--hm-todo)','var(--hm-todo)','var(--hm-todo)','var(--hm-todo)','var(--hm-todo)'],
+              ['var(--hm-todo)','var(--hm-todo)','var(--hm-todo)','var(--hm-todo)','var(--hm-todo)','var(--hm-todo)']
+            ][i];
+            return `<div style="font-weight:500">${k}</div>` + colors.map(c =>
+              `<div style="height:20px;background:${c};border-radius:3px"></div>`
+            ).join('');
+          }).join('')}
+        </div>
+        <div style="display:flex;gap:12px;margin-top:16px;font-size:12px">
+          <span><span style="display:inline-block;width:10px;height:10px;background:var(--hm-done);border-radius:2px"></span> Selesai</span>
+          <span><span style="display:inline-block;width:10px;height:10px;background:var(--hm-progress);border-radius:2px"></span> Proses</span>
+          <span><span style="display:inline-block;width:10px;height:10px;background:var(--hm-overdue);border-radius:2px"></span> Terlambat</span>
+          <span><span style="display:inline-block;width:10px;height:10px;background:var(--hm-todo);border-radius:2px"></span> Belum</span>
+        </div>
+      </article>
+    </div>
+
+    <article class="card mt-4">
+      <div class="card-header">
+        <h3 class="card-title">Aksi cepat</h3>
+      </div>
+      <ul style="list-style:none;display:flex;flex-direction:column;gap:8px">
+        <li class="flex-between" style="padding:8px 0;border-bottom:1px solid var(--border)">
+          <span>Matriks dokumen &amp; status AJB/SLF</span>
+          <a class="btn btn-primary btn-sm" href="dokumen.html">Buka matriks</a>
+        </li>
+        <li class="flex-between" style="padding:8px 0;border-bottom:1px solid var(--border)">
+          <span>Pengajuan role Legal</span>
+          <a class="btn btn-secondary btn-sm" href="pengajuan.html">Pengajuan</a>
+        </li>
+        <li class="flex-between" style="padding:8px 0">
+          <span>Stok / detail kavling</span>
+          <a class="btn btn-secondary btn-sm" href="kavling.html">Kavling</a>
+        </li>
+      </ul>
+    </article>
+  `;
+  AdhShell.mount({ role: 'Legal', title: 'Home Legal', content });
+});
+</script>
+</body>
+</html>
