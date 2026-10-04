@@ -11,14 +11,14 @@
   "theme_color": "#3F58A4",
   "icons": [
     {
-      "src": "assets/img/Adhiland-transparent.png",
-      "sizes": "600x454",
+      "src": "assets/img/Adhiland-icon-192.png",
+      "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "assets/img/Adhiland-white.png",
-      "sizes": "1443x1090",
+      "src": "assets/img/Adhiland-icon-512.png",
+      "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     }
